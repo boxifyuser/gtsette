@@ -1,7 +1,22 @@
+import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, HandshakeIcon, LineChart, ShieldCheck, TrendingDown, UserCheck } from "lucide-react"
 import Link from "next/link"
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
+
+export const metadata: Metadata = {
+  title: "Serviços - Limpa Nome, Negociação de Dívidas e Recuperação de Crédito",
+  description:
+    "Conheça nossos serviços: Limpeza de Nome, Negociação de Dívidas, Análise de Crédito, Consultoria Financeira e muito mais. Mais de 40 mil clientes atendidos.",
+  openGraph: {
+    title: "Serviços GTSETTE - Limpa Nome e Recuperação de Crédito",
+    description:
+      "Soluções completas para recuperar seu crédito: Limpeza de Nome, Negociação de Dívidas, Aumento de Score e muito mais.",
+    url: `${siteUrl}/servicos`,
+  },
+}
 
 export default function ServicosPage() {
   const services = [

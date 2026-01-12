@@ -1,6 +1,21 @@
+import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Search, FileText, Handshake, CheckCircle2 } from "lucide-react"
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
+
+export const metadata: Metadata = {
+  title: "Como Funciona - Processo de Limpeza de Nome",
+  description:
+    "Entenda como funciona nosso processo em 4 passos simples: Consulta, Análise, Negociação e Regularização. Processo transparente e eficiente.",
+  openGraph: {
+    title: "Como Funciona - GTSETTE Soluções Financeiras",
+    description:
+      "Processo simples e transparente em 4 passos para sua recuperação de crédito e limpeza de nome.",
+    url: `${siteUrl}/como-funciona`,
+  },
+}
 
 export default function ComoFunciona() {
   const steps = [

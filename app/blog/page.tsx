@@ -1,6 +1,21 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Calendar, ArrowRight } from "lucide-react"
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
+
+export const metadata: Metadata = {
+  title: "Blog - Dicas e Conteúdos sobre Limpa Nome e Recuperação de Crédito",
+  description:
+    "Acesse nosso blog com dicas, guias e conteúdos exclusivos sobre limpeza de nome, aumento de score, negociação de dívidas e organização financeira.",
+  openGraph: {
+    title: "Blog GTSETTE - Dicas de Limpa Nome e Recuperação de Crédito",
+    description:
+      "Conteúdos exclusivos sobre limpeza de nome, score de crédito, negociação de dívidas e muito mais.",
+    url: `${siteUrl}/blog`,
+  },
+}
 
 export default function Blog() {
   const categories = [

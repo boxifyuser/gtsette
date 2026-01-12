@@ -1,5 +1,20 @@
+import type { Metadata } from "next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Award, Eye, Heart, Target, TrendingUp } from "lucide-react"
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
+
+export const metadata: Metadata = {
+  title: "Sobre Nós - GTSETTE Soluções Financeiras",
+  description:
+    "Conheça a GTSETTE, sua parceira confiável na jornada de reabilitação financeira. Mais de 40 mil clientes atendidos com transparência, ética e resultados reais.",
+  openGraph: {
+    title: "Sobre Nós - GTSETTE Soluções Financeiras",
+    description:
+      "Acreditamos na transparência como pilar fundamental. Mais de 40 mil clientes já transformaram suas vidas financeiras conosco.",
+    url: `${siteUrl}/sobre`,
+  },
+}
 
 export default function SobrePage() {
   return (
