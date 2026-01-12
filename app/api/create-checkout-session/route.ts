@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY não configurada")
+function getStripe() {
+  const secretKey = process.env.STRIPE_SECRET_KEY
+  if (!secretKey) {
+    throw new Error("STRIPE_SECRET_KEY não configurada")
+  }
+  return new Stripe(secretKey, {
+    apiVersion: "2024-12-18.acacia",
+  })
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-12-18.acacia",
-})
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +18,8 @@ export async function POST(request: NextRequest) {
     if (!cpf || !birthDate) {
       return NextResponse.json({ error: "CPF e data de nascimento são obrigatórios" }, { status: 400 })
     }
+
+    const stripe = getStripe()
 
     // Criar sessão de checkout do Stripe
     const session = await stripe.checkout.sessions.create({

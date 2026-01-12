@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY não configurada")
+function getStripe() {
+  const secretKey = process.env.STRIPE_SECRET_KEY
+  if (!secretKey) {
+    throw new Error("STRIPE_SECRET_KEY não configurada")
+  }
+  return new Stripe(secretKey, {
+    apiVersion: "2024-12-18.acacia",
+  })
 }
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-12-18.acacia",
-})
-
-const SERASA_TOKEN = process.env.SERASA_TOKEN
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +18,8 @@ export async function POST(request: NextRequest) {
     if (!sessionId || !cpf || !birthDate) {
       return NextResponse.json({ error: "Dados incompletos" }, { status: 400 })
     }
+
+    const stripe = getStripe()
 
     // Verificar se o pagamento foi concluído
     const session = await stripe.checkout.sessions.retrieve(sessionId)
@@ -35,6 +37,8 @@ export async function POST(request: NextRequest) {
 
     // Consultar API do Serasa
     try {
+      const SERASA_TOKEN = process.env.SERASA_TOKEN
+      
       // Tentar POST primeiro (formato mais comum para APIs de consulta)
       const serasaResponse = await fetch(
         `https://api.serasaexperian.com.br/sdsn/v1/consulta`,
