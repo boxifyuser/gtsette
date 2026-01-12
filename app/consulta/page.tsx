@@ -1,31 +1,22 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle2, Clock, FileText, AlertCircle } from "lucide-react"
+import { CreditCard, Loader2, AlertCircle } from "lucide-react"
+import { loadStripe } from "@stripe/stripe-js"
 
-type ProcessStatus = {
-  status: "em-andamento" | "concluido" | "pendente" | "analise"
-  message: string
-  details: {
-    serasa?: string
-    spc?: string
-    boaVista?: string
-    cenprot?: string
-  }
-  lastUpdate: string
-}
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_live_51RQuPZGDCq9GHABeRAjfSTg28xtDWDI1m4ikv64Gg6xWiwouFdct2OH3JaPqmKuVwAakTOtS7T2vmuoVA8oYZByx007obE3niK"
+)
 
 export default function ConsultaPage() {
   const [cpf, setCpf] = useState("")
   const [birthDate, setBirthDate] = useState("")
-  const [result, setResult] = useState<ProcessStatus | null>(null)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -80,110 +71,49 @@ export default function ConsultaPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    setResult(null)
+    setLoading(true)
 
     if (!validateCPF(cpf)) {
       setError("CPF inválido. Por favor, verifique os dados.")
+      setLoading(false)
       return
     }
 
     if (birthDate.replace(/\D/g, "").length !== 8) {
       setError("Data de nascimento inválida. Use o formato DD/MM/AAAA.")
+      setLoading(false)
       return
     }
 
-    setLoading(true)
+    try {
+      // Criar sessão de checkout
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cpf: cpf.replace(/\D/g, ""),
+          birthDate: birthDate,
+        }),
+      })
 
-    // Simulação de consulta (em produção, fazer chamada à API)
-    setTimeout(() => {
-      // Mock de diferentes status baseado no CPF
-      const cpfNumber = cpf.replace(/\D/g, "")
-      const lastDigit = Number.parseInt(cpfNumber.charAt(cpfNumber.length - 1))
+      const data = await response.json()
 
-      let mockResult: ProcessStatus
-
-      if (lastDigit >= 0 && lastDigit <= 3) {
-        mockResult = {
-          status: "em-andamento",
-          message: "Seu processo está em andamento",
-          details: {
-            serasa: "Baixado",
-            spc: "Em processamento",
-            boaVista: "Aguardando confirmação",
-            cenprot: "Baixado",
-          },
-          lastUpdate: new Date().toLocaleDateString("pt-BR"),
-        }
-      } else if (lastDigit >= 4 && lastDigit <= 6) {
-        mockResult = {
-          status: "concluido",
-          message: "Processo concluído com sucesso!",
-          details: {
-            serasa: "Baixado",
-            spc: "Baixado",
-            boaVista: "Baixado",
-            cenprot: "Baixado",
-          },
-          lastUpdate: new Date().toLocaleDateString("pt-BR"),
-        }
-      } else if (lastDigit >= 7 && lastDigit <= 8) {
-        mockResult = {
-          status: "pendente",
-          message: "Aguardando documentação",
-          details: {
-            serasa: "Pendente",
-            spc: "Pendente",
-            boaVista: "Não iniciado",
-            cenprot: "Não iniciado",
-          },
-          lastUpdate: new Date().toLocaleDateString("pt-BR"),
-        }
-      } else {
-        mockResult = {
-          status: "analise",
-          message: "Em análise pela equipe",
-          details: {
-            serasa: "Em análise",
-            spc: "Em análise",
-            boaVista: "Aguardando",
-            cenprot: "Aguardando",
-          },
-          lastUpdate: new Date().toLocaleDateString("pt-BR"),
-        }
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao processar pagamento")
       }
 
-      setResult(mockResult)
+      // Redirecionar para o Stripe Checkout
+      const stripe = await stripePromise
+      if (stripe && data.sessionId) {
+        await stripe.redirectToCheckout({
+          sessionId: data.sessionId,
+        })
+      }
+    } catch (err: any) {
+      setError(err.message || "Erro ao processar pagamento. Tente novamente.")
       setLoading(false)
-    }, 1500)
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "em-andamento":
-        return <Clock className="h-8 w-8 text-blue-500" />
-      case "concluido":
-        return <CheckCircle2 className="h-8 w-8 text-green-500" />
-      case "pendente":
-        return <AlertCircle className="h-8 w-8 text-amber-500" />
-      case "analise":
-        return <FileText className="h-8 w-8 text-purple-500" />
-      default:
-        return null
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "em-andamento":
-        return "border-blue-500 bg-blue-50"
-      case "concluido":
-        return "border-green-500 bg-green-50"
-      case "pendente":
-        return "border-amber-500 bg-amber-50"
-      case "analise":
-        return "border-purple-500 bg-purple-50"
-      default:
-        return ""
     }
   }
 
@@ -192,8 +122,10 @@ export default function ConsultaPage() {
       {/* Header */}
       <section className="bg-primary px-4 py-16 text-white md:py-20">
         <div className="container mx-auto max-w-4xl text-center">
-          <h1 className="mb-4 text-balance text-4xl font-bold md:text-5xl">Verificar Nome</h1>
-          <p className="text-balance text-lg text-white/90">Verifique o andamento do seu processo de limpeza de nome</p>
+          <h1 className="mb-4 text-balance text-4xl font-bold md:text-5xl">Consulta de CPF</h1>
+          <p className="text-balance text-lg text-white/90">
+            Consulte seu CPF e obtenha informações completas sobre sua situação creditícia
+          </p>
         </div>
       </section>
 
@@ -204,7 +136,8 @@ export default function ConsultaPage() {
             <CardHeader>
               <CardTitle>Digite seus dados</CardTitle>
               <CardDescription>
-                Informe seu CPF e data de nascimento para consultar o status do processo
+                Informe seu CPF e data de nascimento para realizar a consulta. O valor da consulta é de{" "}
+                <strong className="text-primary">R$ 50,00</strong>.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -231,87 +164,70 @@ export default function ConsultaPage() {
                     required
                   />
                 </div>
+
+                {/* Price Display */}
+                <div className="rounded-lg border-2 border-primary/20 bg-primary/5 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Valor da consulta</p>
+                      <p className="text-2xl font-bold text-primary">R$ 50,00</p>
+                    </div>
+                    <CreditCard className="h-8 w-8 text-primary" />
+                  </div>
+                </div>
+
                 {error && (
                   <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Consultando..." : "Verificar Nome"}
+
+                <Button type="submit" className="w-full" disabled={loading} size="lg">
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Pagar e Consultar CPF
+                    </>
+                  )}
                 </Button>
               </form>
+
+              <div className="mt-6 space-y-2 rounded-lg bg-muted p-4">
+                <p className="text-sm font-semibold">O que você receberá:</p>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  <li>• Informações completas sobre sua situação creditícia</li>
+                  <li>• Score de crédito atualizado</li>
+                  <li>• Lista de restrições e pendências</li>
+                  <li>• Dados de todos os órgãos de proteção ao crédito</li>
+                </ul>
+              </div>
             </CardContent>
           </Card>
-
-          {/* Result */}
-          {result && (
-            <Card className={`mt-8 border-2 ${getStatusColor(result.status)}`}>
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  {getStatusIcon(result.status)}
-                  <div>
-                    <CardTitle className="text-2xl">{result.message}</CardTitle>
-                    <CardDescription className="mt-1">Última atualização: {result.lastUpdate}</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <h3 className="font-semibold">Status por Órgão:</h3>
-                  <div className="grid gap-3">
-                    {result.details.serasa && (
-                      <div className="flex items-center justify-between rounded-lg border bg-card p-3">
-                        <span className="font-medium">SERASA</span>
-                        <span className="text-sm text-muted-foreground">{result.details.serasa}</span>
-                      </div>
-                    )}
-                    {result.details.spc && (
-                      <div className="flex items-center justify-between rounded-lg border bg-card p-3">
-                        <span className="font-medium">SPC Brasil</span>
-                        <span className="text-sm text-muted-foreground">{result.details.spc}</span>
-                      </div>
-                    )}
-                    {result.details.boaVista && (
-                      <div className="flex items-center justify-between rounded-lg border bg-card p-3">
-                        <span className="font-medium">Boa Vista</span>
-                        <span className="text-sm text-muted-foreground">{result.details.boaVista}</span>
-                      </div>
-                    )}
-                    {result.details.cenprot && (
-                      <div className="flex items-center justify-between rounded-lg border bg-card p-3">
-                        <span className="font-medium">CENPROT</span>
-                        <span className="text-sm text-muted-foreground">{result.details.cenprot}</span>
-                      </div>
-                    )}
-                  </div>
-                  <Alert>
-                    <AlertDescription>
-                      Em caso de dúvidas sobre seu processo, entre em contato com nossa equipe através do WhatsApp ou
-                      formulário de contato.
-                    </AlertDescription>
-                  </Alert>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </section>
 
       {/* Info Section */}
       <section className="bg-muted px-4 py-16">
         <div className="container mx-auto max-w-4xl">
-          <h2 className="mb-6 text-2xl font-bold">Como funciona esta consulta?</h2>
+          <h2 className="mb-6 text-2xl font-bold">Como funciona a consulta?</h2>
           <div className="space-y-4 text-muted-foreground">
             <p>
-              Esta página permite que você acompanhe, em tempo real, o andamento do seu processo de limpeza de nome.
+              Nossa consulta utiliza a API oficial da Serasa Experian para fornecer informações precisas e atualizadas
+              sobre sua situação creditícia.
             </p>
             <p>
-              As informações são organizadas por órgão de proteção ao crédito (SERASA, SPC Brasil, Boa Vista, CENPROT)
-              para que você tenha visibilidade completa de cada etapa.
+              Após o pagamento, você terá acesso imediato a todas as informações, incluindo score, restrições e
+              pendências em todos os órgãos de proteção ao crédito.
             </p>
             <p>
-              Os status são atualizados diariamente pela nossa equipe. Em caso de dúvidas específicas sobre seu CPF ou
-              processo, entre em contato através dos nossos canais de atendimento.
+              Os dados são consultados em tempo real diretamente da Serasa Experian, garantindo a máxima precisão e
+              atualidade das informações.
             </p>
           </div>
         </div>

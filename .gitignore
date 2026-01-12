@@ -25,26 +25,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# IDE and editor files
-.cursor/
-.vscode/
-*.swp
-*.swo
-*~
-
-# OS files
-.DS_Store
-Thumbs.db
-AppData/
-Ambiente de Impressão/
-Ambiente de Rede/
-Configurações Locais/
-Cookies/
-Dados de Aplicativos/
-Documents/
-Menu Iniciar/
-Meus Documentos/
-Modelos/
-Recent/
-SendTo/
