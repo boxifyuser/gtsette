@@ -1,40 +1,43 @@
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Shield, TrendingUp, Users, Star, Phone, Play, Instagram, MapPin } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-100 px-6 py-16 lg:py-24">
-        {/* Decorative curved shapes */}
-        <div className="absolute inset-0 overflow-hidden opacity-30">
-          <div className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-purple-200/50 blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-purple-300/40 blur-3xl" />
-        </div>
+      {/* Hero Section - Banner como background */}
+      <section className="relative min-h-[90vh] overflow-hidden bg-gray-900 px-6 py-16 lg:py-24">
+        {/* Background: banner com overlay para legibilidade */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/images/banner-hero.png')" }}
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent"
+          aria-hidden
+        />
 
-        <div className="container relative mx-auto max-w-7xl">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
+        <div className="container relative z-10 mx-auto max-w-7xl">
+          <div className="grid min-h-[70vh] items-center gap-12 lg:grid-cols-2">
             {/* Left Side - Content */}
             <div className="text-left">
               {/* Badge with Icon */}
-              <div className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-gray-700">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-primary bg-white">
+              <div className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-white/90">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-primary bg-white/10">
                   <div className="h-2 w-2 rounded-full bg-primary" />
                 </div>
                 <span>Início</span>
               </div>
 
               {/* Main Headline */}
-              <h1 className="mb-6 text-5xl font-extrabold leading-tight text-primary lg:text-6xl xl:text-7xl">
+              <h1 className="mb-6 text-5xl font-extrabold leading-tight text-white lg:text-6xl xl:text-7xl">
                 LIMPE
                 <br />O SEU NOME
               </h1>
 
               {/* Description */}
-              <p className="mb-8 text-lg leading-relaxed text-gray-700">
-                Na GTsette, <strong>nós não acreditamos em limites quando se trata de limpar seu nome</strong>. Seja
+              <p className="mb-8 max-w-xl text-lg leading-relaxed text-white/90">
+                Na GTsette, <strong className="text-white">nós não acreditamos em limites quando se trata de limpar seu nome</strong>. Seja
                 qual for o valor da sua dívida, estamos aqui para libertar você das amarras financeiras e abrir portas
                 para um futuro sem restrições.
               </p>
@@ -60,26 +63,15 @@ export default function Home() {
                   asChild
                   size="lg"
                   variant="outline"
-                  className="h-14 border-2 border-sky-400 bg-white px-8 text-base font-semibold text-sky-600 hover:bg-sky-50"
+                  className="h-14 border-2 border-white/60 bg-white/10 px-8 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/20 hover:text-white"
                 >
                   <Link href="/servicos">Conhecer serviços</Link>
                 </Button>
               </div>
             </div>
 
-            {/* Right Side - Image */}
-            <div className="relative">
-              <div className="relative">
-                <Image
-                  src="/images/foto-tayna-com-texto.png"
-                  alt="Miga do limpa nome - Tayna, especialista GTSETTE"
-                  width={600}
-                  height={800}
-                  className="object-contain"
-                  priority
-                />
-              </div>
-            </div>
+            {/* Right: o banner já traz a imagem da Tayna e "Miga do limpa nome" no próprio background */}
+            <div className="hidden lg:block" aria-hidden />
           </div>
         </div>
       </section>

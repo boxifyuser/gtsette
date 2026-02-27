@@ -24,7 +24,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image
-            src="/images/logo-gtsette.png"
+            src="/images/logo-gtsette-header.png"
             alt="GTSETTE Soluções Financeiras"
             width={180}
             height={60}

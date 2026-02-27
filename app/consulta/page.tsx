@@ -8,11 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CreditCard, Loader2, AlertCircle } from "lucide-react"
-import { loadStripe } from "@stripe/stripe-js"
-
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_live_51RQuPZGDCq9GHABeRAjfSTg28xtDWDI1m4ikv64Gg6xWiwouFdct2OH3JaPqmKuVwAakTOtS7T2vmuoVA8oYZByx007obE3niK"
-)
 
 export default function ConsultaPage() {
   const [cpf, setCpf] = useState("")
@@ -104,12 +99,11 @@ export default function ConsultaPage() {
         throw new Error(data.error || "Erro ao processar pagamento")
       }
 
-      // Redirecionar para o Stripe Checkout
-      const stripe = await stripePromise
-      if (stripe && data.sessionId) {
-        await stripe.redirectToCheckout({
-          sessionId: data.sessionId,
-        })
+      // Redirecionar para o Stripe Checkout usando a URL da sessão
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error("URL de checkout não disponível")
       }
     } catch (err: any) {
       setError(err.message || "Erro ao processar pagamento. Tente novamente.")

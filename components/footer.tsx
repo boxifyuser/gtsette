@@ -12,7 +12,7 @@ export function Footer() {
           <div>
             <Link href="/" className="mb-4 inline-block">
               <Image
-                src="/images/logo-gtsette-white.png"
+                src="/images/logo-gtsette-branca.png"
                 alt="GTSETTE Soluções Financeiras"
                 width={160}
                 height={50}
