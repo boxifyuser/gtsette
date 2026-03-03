@@ -1,13 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { MessageCircle, Send, Bot } from "lucide-react"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
+import { MessageCircle, Send, Bot, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
@@ -112,7 +106,7 @@ export function ChatFloatingButton() {
 
   return (
     <>
-      {/* Botão flutuante */}
+      {/* Botão flutuante — canto inferior direito */}
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -127,16 +121,29 @@ export function ChatFloatingButton() {
         </span>
       </button>
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent
-          side="right"
-          className="flex w-full flex-col border-l p-0 sm:max-w-sm"
+      {/* Janela suspensa — canto inferior direito, usuário continua vendo o site */}
+      {open && (
+        <div
+          className="fixed bottom-6 right-6 z-50 flex h-[600px] w-[420px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl"
+          role="dialog"
+          aria-label="Chat GTSETTE"
         >
-          <SheetHeader className="border-b px-3 py-2">
-            <SheetTitle className="text-base font-semibold">
+          {/* Cabeçalho */}
+          <div className="flex flex-shrink-0 items-center justify-between border-b bg-[#f9fafb] px-3 py-2">
+            <span className="text-base font-semibold text-gray-900">
               Tay, assistente virtual GTSette
-            </SheetTitle>
-          </SheetHeader>
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setOpen(false)}
+              aria-label="Fechar chat"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
 
           {/* Área de mensagens */}
           <div className="flex-1 overflow-y-auto p-3">
@@ -203,7 +210,7 @@ export function ChatFloatingButton() {
           </div>
 
           {/* Campo de envio */}
-          <div className="border-t p-3">
+          <div className="flex-shrink-0 border-t p-3">
             <div className="flex gap-2">
               <Textarea
                 placeholder="Digite sua mensagem..."
@@ -226,8 +233,8 @@ export function ChatFloatingButton() {
               </Button>
             </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </div>
+      )}
     </>
   )
 }

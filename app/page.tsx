@@ -1,3 +1,4 @@
+import { HeroFormImovel } from "@/components/forms/hero-form-imovel"
 import { Button } from "@/components/ui/button"
 import {
   Carousel,
@@ -99,8 +100,12 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right: o banner já traz a imagem da Tayna e "Miga do limpa nome" no próprio background */}
-            <div className="hidden lg:block" aria-hidden />
+            {/* Right: formulário Receba uma proposta */}
+            <div className="flex items-center justify-center lg:justify-end">
+              <div className="w-full max-w-md">
+                <HeroFormImovel pageSlug="home" />
+              </div>
+            </div>
           </div>
         </div>
       </section>

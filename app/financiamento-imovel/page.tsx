@@ -124,7 +124,7 @@ export default function FinanciamentoImovelPage() {
             {/* Formulário: no mobile aparece no topo (order-1) */}
             <div className="order-1 lg:order-2 lg:flex lg:justify-end">
               <div className="w-full max-w-md lg:max-w-sm">
-                <HeroFormImovel />
+                <HeroFormImovel pageSlug="financiamento-imovel" />
               </div>
             </div>
           </div>

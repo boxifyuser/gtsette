@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { HeroFormImovel } from "@/components/forms/hero-form-imovel"
 import { Button } from "@/components/ui/button"
 import {
   Check,
@@ -207,6 +208,15 @@ export default function FinanciamentoVeiculoPage() {
               Quero aumentar minhas chances de aprovação
             </a>
           </Button>
+        </div>
+      </section>
+
+      {/* Formulário Receba uma proposta */}
+      <section className="border-t border-gray-200 bg-white px-6 py-16">
+        <div className="container mx-auto max-w-6xl">
+          <div className="mx-auto flex max-w-md justify-center">
+            <HeroFormImovel pageSlug="financiamento-veiculo" />
+          </div>
         </div>
       </section>
 

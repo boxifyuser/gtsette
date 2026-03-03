@@ -5,7 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { ChatFloatingButton } from "@/components/chat-floating-button"
+import { BoxifyChatFloating } from "@/components/boxify-chat-floating"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -185,7 +185,8 @@ fbq('track', 'PageView');
         <Header />
         <main>{children}</main>
         <Footer />
-        <ChatFloatingButton />
+        {/* Chat flutuante dentro do site: ao clicar no botão abre painel no canto inferior direito, sem nova aba */}
+        <BoxifyChatFloating />
         <Analytics />
       </body>
     </html>
