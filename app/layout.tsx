@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
+import { ChatFloatingButton } from "@/components/chat-floating-button"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -184,6 +185,7 @@ fbq('track', 'PageView');
         <Header />
         <main>{children}</main>
         <Footer />
+        <ChatFloatingButton />
         <Analytics />
       </body>
     </html>

@@ -32,7 +32,9 @@ export function Footer() {
                 <Facebook className="h-4 w-4" />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/gtsette_solucoes/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="rounded-lg bg-white/10 p-2 transition-colors hover:bg-primary"
                 aria-label="Instagram"
               >
