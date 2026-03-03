@@ -237,7 +237,7 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
         type="submit"
         size="lg"
         disabled={loading}
-        className="mt-4 w-full bg-primary py-5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-80 sm:mt-6 sm:py-6 sm:text-base"
+        className="mt-4 w-full cursor-pointer bg-primary py-5 text-sm font-semibold text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-80 sm:mt-6 sm:py-6 sm:text-base"
       >
         {loading ? (
           <Loader2 className="h-5 w-5 animate-spin" />

@@ -14,8 +14,9 @@ export function Footer() {
               <Image
                 src="/images/logo-gtsette-branca.png"
                 alt="GTSETTE Soluções Financeiras"
-                width={160}
-                height={50}
+                width={320}
+                height={100}
+                quality={100}
                 className="h-auto w-36"
               />
             </Link>

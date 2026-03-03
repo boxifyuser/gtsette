@@ -7,8 +7,38 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { DepoimentoCard } from "@/components/depoimento-card"
 import { Star, Phone, Play, MapPin } from "lucide-react"
+import fs from "fs"
 import Link from "next/link"
+import path from "path"
+
+const DEPOIMENTOS_PADRAO = [
+  "/images/depoimentos/depoimento-1.png",
+  "/images/depoimentos/depoimento-2.png",
+  "/images/depoimentos/depoimento-3.png",
+  "/images/depoimentos/depoimento-4.png",
+  "/images/depoimentos/depoimento-5.png",
+]
+
+function getDepoimentosImagens(): string[] {
+  const dir = path.join(process.cwd(), "public", "images", "depoimentos")
+  try {
+    if (!fs.existsSync(dir)) return DEPOIMENTOS_PADRAO
+    const files = fs.readdirSync(dir)
+    const depoimentos = files
+      .filter((f) => /^depoimento-\d+\.png$/i.test(f))
+      .sort((a, b) => {
+        const numA = parseInt(a.replace(/\D/g, ""), 10) || 0
+        const numB = parseInt(b.replace(/\D/g, ""), 10) || 0
+        return numA - numB
+      })
+    if (depoimentos.length === 0) return DEPOIMENTOS_PADRAO
+    return depoimentos.map((f) => `/images/depoimentos/${f}`)
+  } catch {
+    return DEPOIMENTOS_PADRAO
+  }
+}
 
 const SERVICOS = [
   {
@@ -34,6 +64,8 @@ const SERVICOS = [
 ] as const
 
 export default function Home() {
+  const depoimentosImagens = getDepoimentosImagens()
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Hero Section - Banner como background */}
@@ -303,7 +335,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Social Proof Section */}
+      {/* Social Proof Section - Carrossel de depoimentos */}
       <section className="bg-secondary px-6 py-20">
         <div className="container mx-auto max-w-7xl">
           <div className="mb-12 text-center">
@@ -312,31 +344,30 @@ export default function Home() {
               Mais de 80 mil pessoas já transformaram suas vidas financeiras com a GTSETTE
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {[
-              {
-                name: "Maria Silva",
-                text: "Consegui limpar meu nome em menos de 30 dias! Atendimento impecável e transparente.",
-              },
-              {
-                name: "João Santos",
-                text: "Negociaram minhas dívidas com descontos incríveis. Hoje tenho crédito de volta!",
-              },
-              {
-                name: "Ana Paula",
-                text: "Meu score aumentou 200 pontos em 3 meses. Profissionais sérios e competentes.",
-              },
-            ].map((testimonial, i) => (
-              <div key={i} className="rounded-2xl border border-border bg-white p-6 shadow-sm">
-                <div className="mb-4 flex gap-1">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="h-5 w-5 fill-warning text-warning" />
-                  ))}
-                </div>
-                <p className="mb-4 text-gray-700">{testimonial.text}</p>
-                <p className="font-semibold text-gray-900">{testimonial.name}</p>
-              </div>
-            ))}
+          <div className="relative mx-auto max-w-6xl px-4 md:px-8">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+                skipSnaps: false,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-3 md:-ml-4">
+                {depoimentosImagens.map((src, i) => (
+                  <CarouselItem
+                    key={i}
+                    className="pl-3 md:pl-4 basis-full sm:basis-1/2 lg:basis-[calc((100%-2rem)/3)]"
+                  >
+                    <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-md">
+                      <DepoimentoCard src={src} index={i} />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="-left-2 size-10 border-gray-200 bg-white shadow-md hover:bg-gray-50 md:-left-4" />
+              <CarouselNext className="-right-2 size-10 border-gray-200 bg-white shadow-md hover:bg-gray-50 md:-right-4" />
+            </Carousel>
           </div>
         </div>
       </section>

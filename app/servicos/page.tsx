@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, HandshakeIcon, LineChart, ShieldCheck, TrendingDown, UserCheck } from "lucide-react"
+import { BarChart3, Building2, FileText, HandshakeIcon, LineChart, ShieldCheck, UserCheck } from "lucide-react"
 import Link from "next/link"
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
@@ -55,10 +55,26 @@ export default function ServicosPage() {
       features: ["Planejamento financeiro", "Controle de gastos", "Estratégias de economia", "Educação financeira"],
     },
     {
-      icon: TrendingDown,
-      title: "Redução de Juros",
-      description: "Renegociação de contratos para reduzir taxas de juros abusivas.",
-      features: ["Revisão contratual", "Identificação de juros abusivos", "Negociação de taxas", "Economia mensal"],
+      icon: Building2,
+      title: "Retirada do Bacen",
+      description: "Retirada de vencidos e prejuízos. Retire seu nome da lista negra do Banco Central e regularize sua situação perante o Bacen.",
+      features: [
+        "Retirada de vencidos no Bacen",
+        "Saída da lista restritiva do Banco Central",
+        "Regularização perante o BC",
+        "Limpeza de registros de prejuízos",
+      ],
+    },
+    {
+      icon: BarChart3,
+      title: "Rating Bancário",
+      description: "Aumente sua pontuação para AA no Serasa/Concentre e abra novas oportunidades de crédito.",
+      features: [
+        "Elevação do score para classificação AA",
+        "Melhoria no Serasa e Concentre",
+        "Abertura de linhas de crédito",
+        "Oportunidades com melhores condições",
+      ],
     },
     {
       icon: UserCheck,

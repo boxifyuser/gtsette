@@ -20,16 +20,17 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
-      <nav className="container mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6 lg:py-4">
+      <nav className="container mx-auto flex max-w-7xl items-center justify-between px-4 py-1.5 sm:px-6 lg:py-2">
         {/* Logo */}
         <Link href="/" className="flex items-center shrink-0">
           <Image
             src="/images/logo-gtsette-header.png"
             alt="GTSETTE Soluções Financeiras"
-            width={180}
-            height={60}
+            width={300}
+            height={100}
             priority
-            className="h-9 w-28 sm:h-10 sm:w-36 md:w-40 lg:h-auto lg:w-48"
+            quality={100}
+            className="h-[100px] min-h-[100px] w-auto object-contain"
           />
         </Link>
 
