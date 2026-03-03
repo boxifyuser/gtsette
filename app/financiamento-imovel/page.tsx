@@ -77,52 +77,52 @@ export default function FinanciamentoImovelPage() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gray-900 px-6 py-16 lg:py-24">
+      <section className="relative overflow-hidden bg-gray-900 px-4 py-8 sm:px-6 sm:py-12 lg:py-24">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
           style={{ backgroundImage: "url('/images/banner-hero.png')" }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent" aria-hidden />
         <div className="container relative z-10 mx-auto max-w-7xl">
-          <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
-            {/* Esquerda: texto e CTAs */}
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm">
-                <Home className="h-4 w-4" />
+          <div className="grid items-start gap-6 lg:grid-cols-2 lg:items-center lg:gap-12">
+            {/* No mobile: formulário primeiro (order-1). No desktop: texto à esquerda, form à direita. */}
+            <div className="order-2 lg:order-1">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm sm:gap-2 sm:px-4 sm:py-2 sm:text-sm">
+                <Home className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Casa própria</span>
               </div>
-              <h1 className="mt-6 text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
+              <h1 className="mt-4 text-xl font-extrabold leading-snug text-white sm:mt-6 sm:text-3xl sm:leading-tight md:text-4xl lg:text-5xl xl:text-6xl">
                 Seu financiamento foi negado? Regularize seu nome e aumente seu score
                 para conquistar sua casa própria.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/90">
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90 sm:mt-4 sm:text-base lg:text-lg">
                 A GTSETTE Soluções Financeiras prepara você para ser aprovado no
                 financiamento imobiliário com estratégia, negociação e acompanhamento
                 completo.
               </p>
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row lg:flex-col xl:flex-row">
+              <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:gap-4 lg:flex-col xl:flex-row">
                 <Button
                   asChild
                   size="lg"
-                  className="h-14 bg-primary px-8 text-base font-semibold text-white shadow-lg hover:bg-primary-hover"
+                  className="h-11 bg-primary px-5 text-sm font-semibold text-white shadow-lg hover:bg-primary-hover sm:h-12 sm:px-6 sm:text-base lg:h-14 lg:px-8"
                 >
                   <a
                     href={`${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_IMOVEL)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2"
                   >
-                    <MessageCircle className="h-5 w-5" />
+                    <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                     Quero aumentar minhas chances de aprovação agora
                   </a>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-14 border-2 border-white/60 bg-white/10 px-8 text-white hover:bg-white/20">
+                <Button asChild size="lg" variant="outline" className="h-11 border-2 border-white/60 bg-white/10 px-5 text-sm text-white hover:bg-white/20 sm:h-12 sm:px-6 sm:text-base lg:h-14 lg:px-8">
                   <Link href="/consulta">Simular minha situação</Link>
                 </Button>
               </div>
             </div>
-            {/* Direita: formulário */}
-            <div className="lg:flex lg:justify-end">
+            {/* Formulário: no mobile aparece no topo (order-1) */}
+            <div className="order-1 lg:order-2 lg:flex lg:justify-end">
               <div className="w-full max-w-md lg:max-w-sm">
                 <HeroFormImovel />
               </div>

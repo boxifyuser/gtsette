@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-const BOXIFY_BASE = process.env.BOXIFY_API_BASE_URL || "http://boxify.com.br/api/v1"
-const BOXIFY_TOKEN = process.env.BOXIFY_API_TOKEN || "bx_UcJ8RcYOarmwMH07icG7-4KKG2Q-pVUN"
+// BOXIFY_API_BASE_URL e BOXIFY_API_TOKEN devem estar definidos em .env.local
 
 /** Extrai valor numérico de string (ex: "R$ 50.000" -> 50000) */
 function parseValue(value: string | undefined): number | undefined {
@@ -13,6 +12,22 @@ function parseValue(value: string | undefined): number | undefined {
 
 export async function POST(request: NextRequest) {
   try {
+    const boxifyBase = process.env.BOXIFY_API_BASE_URL
+    const boxifyToken = process.env.BOXIFY_API_TOKEN
+
+    if (!boxifyToken?.trim()) {
+      return NextResponse.json(
+        { error: "Token inválido ou ausente. Configure BOXIFY_API_TOKEN em .env.local" },
+        { status: 503 }
+      )
+    }
+    if (!boxifyBase?.trim()) {
+      return NextResponse.json(
+        { error: "URL da API não configurada. Configure BOXIFY_API_BASE_URL em .env.local" },
+        { status: 503 }
+      )
+    }
+
     const body = await request.json()
     const { name, email, phone, value: valueRaw, source } = body
 
@@ -33,10 +48,10 @@ export async function POST(request: NextRequest) {
     if (phone && String(phone).trim()) payload.phone = String(phone).trim()
     if (value !== undefined) payload.value = value
 
-    const res = await fetch(`${BOXIFY_BASE}/leads`, {
+    const res = await fetch(`${boxifyBase}/leads`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${BOXIFY_TOKEN}`,
+        Authorization: `Bearer ${boxifyToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),

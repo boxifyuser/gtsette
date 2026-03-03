@@ -78,9 +78,9 @@ export function HeroFormImovel() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full rounded-2xl border border-white/20 bg-white/5 p-6 shadow-xl backdrop-blur-sm sm:p-8"
+      className="w-full rounded-xl border border-white/20 bg-white/5 p-4 shadow-xl backdrop-blur-sm sm:rounded-2xl sm:p-6 lg:p-8"
     >
-      <p className="mb-6 text-sm font-medium uppercase tracking-wider text-white/80">
+      <p className="mb-4 text-xs font-medium uppercase tracking-wider text-white/80 sm:mb-6 sm:text-sm">
         Receba uma proposta
       </p>
       {error && (
@@ -88,9 +88,9 @@ export function HeroFormImovel() {
           {error}
         </p>
       )}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <div>
-          <Label htmlFor="hero-nome" className="text-white/90">
+          <Label htmlFor="hero-nome" className="text-sm text-white/90 sm:text-base">
             Nome
           </Label>
           <Input
@@ -101,11 +101,11 @@ export function HeroFormImovel() {
             onChange={(e) => setNome(e.target.value)}
             required
             disabled={loading}
-            className="mt-1.5 border-white/30 bg-white/10 text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70"
+            className="mt-1 h-10 border-white/30 bg-white/10 text-sm text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70 sm:h-11 sm:text-base"
           />
         </div>
         <div>
-          <Label htmlFor="hero-telefone" className="text-white/90">
+          <Label htmlFor="hero-telefone" className="text-sm text-white/90 sm:text-base">
             Telefone
           </Label>
           <Input
@@ -115,11 +115,11 @@ export function HeroFormImovel() {
             value={telefone}
             onChange={(e) => setTelefone(formatPhone(e.target.value))}
             disabled={loading}
-            className="mt-1.5 border-white/30 bg-white/10 text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70"
+            className="mt-1 h-10 border-white/30 bg-white/10 text-sm text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70 sm:h-11 sm:text-base"
           />
         </div>
         <div>
-          <Label htmlFor="hero-email" className="text-white/90">
+          <Label htmlFor="hero-email" className="text-sm text-white/90 sm:text-base">
             E-mail
           </Label>
           <Input
@@ -129,11 +129,11 @@ export function HeroFormImovel() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
-            className="mt-1.5 border-white/30 bg-white/10 text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70"
+            className="mt-1 h-10 border-white/30 bg-white/10 text-sm text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70 sm:h-11 sm:text-base"
           />
         </div>
         <div>
-          <Label htmlFor="hero-valor" className="text-white/90">
+          <Label htmlFor="hero-valor" className="text-sm text-white/90 sm:text-base">
             Valor da dívida (aproximado)
           </Label>
           <Input
@@ -143,7 +143,7 @@ export function HeroFormImovel() {
             value={valorDivida}
             onChange={(e) => setValorDivida(e.target.value)}
             disabled={loading}
-            className="mt-1.5 border-white/30 bg-white/10 text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70"
+            className="mt-1 h-10 border-white/30 bg-white/10 text-sm text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70 sm:h-11 sm:text-base"
           />
         </div>
       </div>
@@ -151,7 +151,7 @@ export function HeroFormImovel() {
         type="submit"
         size="lg"
         disabled={loading}
-        className="mt-6 w-full bg-primary py-6 text-base font-semibold text-white hover:bg-primary-hover disabled:opacity-80"
+        className="mt-4 w-full bg-primary py-5 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-80 sm:mt-6 sm:py-6 sm:text-base"
       >
         {loading ? (
           <Loader2 className="h-5 w-5 animate-spin" />

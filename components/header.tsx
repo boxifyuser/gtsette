@@ -20,16 +20,16 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
-      <nav className="container mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <nav className="container mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6 lg:py-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center shrink-0">
           <Image
             src="/images/logo-gtsette-header.png"
             alt="GTSETTE Soluções Financeiras"
             width={180}
             height={60}
             priority
-            className="h-auto w-40 md:w-48"
+            className="h-9 w-28 sm:h-10 sm:w-36 md:w-40 lg:h-auto lg:w-48"
           />
         </Link>
 
@@ -57,15 +57,19 @@ export function Header() {
         </div>
 
         {/* Mobile Menu Button */}
-        <button className="lg:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle menu">
-          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        <button
+          className="lg:hidden -m-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-700 hover:bg-muted"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Abrir menu"
+        >
+          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </nav>
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
         <div className="border-t border-border bg-background lg:hidden">
-          <div className="container mx-auto space-y-1 px-6 py-4">
+          <div className="container mx-auto space-y-1 px-4 py-3 sm:px-6">
             {navigation.map((item) => (
               <Link
                 key={item.name}
