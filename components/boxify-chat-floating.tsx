@@ -42,14 +42,17 @@ export function BoxifyChatFloating() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-[999998] flex h-14 w-14 items-center justify-center rounded-full border-0 text-2xl shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+        className="fixed bottom-5 right-5 z-[999998] flex h-14 items-center gap-2 rounded-full border-0 pl-3 pr-4 text-2xl shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
         style={{
           backgroundColor: BUTTON_CONFIG.backgroundColor,
           color: BUTTON_CONFIG.iconColor,
         }}
-        aria-label="Abrir chat"
+        aria-label="Falar com Atendente"
       >
-        💬
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-xl">
+          💬
+        </span>
+        <span className="text-sm font-medium whitespace-nowrap">Falar com Atendente</span>
       </button>
 
       {/* Painel flutuante com chat dentro do site (sem nova aba/janela) */}

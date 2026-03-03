@@ -244,7 +244,7 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
         ) : (
           <MessageCircle className="h-5 w-5" />
         )}
-        {loading ? "Enviando..." : "Falar com uma pessoa"}
+        {loading ? "Enviando..." : "Receber Avaliação"}
       </Button>
     </form>
   )
