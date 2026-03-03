@@ -40,9 +40,9 @@ const DORES = [
 
 const SOLUCOES = [
   {
-    titulo: "Negociação de Dívidas",
+    titulo: "Retirada de Dívidas dos Órgãos",
     descricao:
-      "Até 90% de desconto, parcelamento facilitado e negociação direta com credores.",
+      "Trabalhamos com a Lei 8078 (CDC), artigos 42 e 43, retirando sua dívida dos órgãos de proteção ao crédito.",
     icon: FileCheck,
   },
   {

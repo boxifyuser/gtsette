@@ -36,9 +36,9 @@ export default function ComoFunciona() {
     {
       number: 3,
       icon: Handshake,
-      title: "Negociamos suas dívidas",
+      title: "Atuamos com a Lei 8078 (art. 42 e 43)",
       description:
-        "Entramos em contato com os credores e negociamos descontos e condições especiais para você quitar suas dívidas.",
+        "Trabalhamos com base no Código de Defesa do Consumidor, retirando sua dívida dos órgãos de proteção ao crédito.",
     },
     {
       number: 4,

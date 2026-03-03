@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s | GTSETTE Soluções Financeiras",
   },
   description:
-    "Especialistas em Limpa Nome, regularização de CPF, aumento de Score e negociação de dívidas. Mais de 40 mil clientes atendidos. Ética, transparência e resultados reais.",
+    "Especialistas em Limpa Nome, regularização de CPF, aumento de Score e negociação de dívidas. Mais de 80 mil clientes que limparam nome conosco. Ética, transparência e resultados reais.",
   keywords: [
     "limpa nome",
     "limpeza de nome",
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     siteName: "GTSETTE Soluções Financeiras",
     title: "GTSETTE Soluções Financeiras - Limpa Nome e Recuperação de Crédito",
     description:
-      "Especialistas em Limpa Nome, regularização de CPF, aumento de Score e negociação de dívidas. Mais de 40 mil clientes atendidos.",
+      "Especialistas em Limpa Nome, regularização de CPF, aumento de Score e negociação de dívidas. Mais de 80 mil clientes que limparam nome conosco.",
     images: [
       {
         url: "/images/logo-gtsette.png",
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "GTSETTE Soluções Financeiras - Limpa Nome e Recuperação de Crédito",
     description:
-      "Especialistas em Limpa Nome, regularização de CPF, aumento de Score e negociação de dívidas. Mais de 40 mil clientes atendidos.",
+      "Especialistas em Limpa Nome, regularização de CPF, aumento de Score e negociação de dívidas. Mais de 80 mil clientes que limparam nome conosco.",
     images: ["/images/logo-gtsette.png"],
     creator: "@gtsette_solucoes",
   },
@@ -112,7 +112,7 @@ export default function RootLayout({
     "@type": "FinancialService",
     name: "GTSETTE Soluções Financeiras",
     description:
-      "Especialistas em Limpa Nome, regularização de CPF, aumento de Score e negociação de dívidas. Mais de 40 mil clientes atendidos.",
+      "Especialistas em Limpa Nome, regularização de CPF, aumento de Score e negociação de dívidas. Mais de 80 mil clientes que limparam nome conosco.",
     url: siteUrl,
     logo: `${siteUrl}/images/logo-gtsette.png`,
     address: {
@@ -135,12 +135,12 @@ export default function RootLayout({
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "4.9",
-      reviewCount: "40000",
+      reviewCount: "80000",
     },
     serviceType: [
       "Limpa Nome",
-      "Negociação de Dívidas",
-      "Aumento de Score",
+      "Retirada de Dívidas dos Órgãos",
+      "Restauração de Score",
       "Regularização de CPF",
       "Recuperação de Crédito",
     ],

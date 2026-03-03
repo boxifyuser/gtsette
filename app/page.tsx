@@ -14,16 +14,17 @@ const SERVICOS = [
   {
     titulo: "Limpa Nome",
     descricao:
-      "Regularize seu CPF e limpe seu nome das restrições de crédito com agilidade e transparência.",
+      "Regularizamos seu CPF e CNPJ e limpamos seu nome das restrições de crédito com agilidade e transparência.",
   },
   {
-    titulo: "Negociação de Dívidas",
-    descricao: "Negociamos suas dívidas com as melhores condições e descontos do mercado.",
-  },
-  {
-    titulo: "Aumento de Score",
+    titulo: "Retirada de Dívidas dos Órgãos",
     descricao:
-      "Estratégias comprovadas para aumentar seu score de crédito de forma sustentável.",
+      "Trabalhamos com a Lei 8078 (CDC), artigos 42 e 43, retirando sua dívida dos órgãos de proteção ao crédito.",
+  },
+  {
+    titulo: "Restauração de Score",
+    descricao:
+      "Restauramos seu score de crédito de forma sustentável.",
   },
   {
     titulo: "Regularização Financeira",
@@ -132,7 +133,7 @@ export default function Home() {
               </div>
               <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">Conheça a GTSETTE Soluções</h2>
               <p className="mb-6 text-lg leading-relaxed text-gray-700">
-                Entenda como funcionam nossos serviços e descubra por que somos a escolha de mais de 40 mil pessoas que
+                Entenda como funcionam nossos serviços e descubra por que somos a escolha de mais de 80 mil pessoas que
                 recuperaram sua tranquilidade financeira.
               </p>
               <p className="mb-8 text-gray-700">
@@ -308,7 +309,7 @@ export default function Home() {
           <div className="mb-12 text-center">
             <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">O que nossos clientes dizem</h2>
             <p className="mx-auto max-w-2xl text-balance text-gray-700">
-              Mais de 40 mil pessoas já transformaram suas vidas financeiras com a GTSETTE
+              Mais de 80 mil pessoas já transformaram suas vidas financeiras com a GTSETTE
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -358,8 +359,8 @@ export default function Home() {
         <div className="container mx-auto max-w-7xl">
           <div className="grid gap-8 md:grid-cols-3">
             <div className="text-center">
-              <div className="mb-2 text-5xl font-bold text-primary md:text-6xl">+40k</div>
-              <p className="text-gray-700">Clientes Atendidos</p>
+              <div className="mb-2 text-5xl font-bold text-primary md:text-6xl">+80k</div>
+              <p className="text-gray-700">clientes que limparam nome conosco</p>
             </div>
             <div className="text-center">
               <div className="mb-2 text-5xl font-bold text-primary md:text-6xl">95%</div>
@@ -367,7 +368,7 @@ export default function Home() {
             </div>
             <div className="text-center">
               <div className="mb-2 text-5xl font-bold text-primary md:text-6xl">R$ 150M+</div>
-              <p className="text-gray-700">Em Dívidas Negociadas</p>
+              <p className="text-gray-700">Em Dívidas Retiradas dos Órgãos</p>
             </div>
           </div>
         </div>

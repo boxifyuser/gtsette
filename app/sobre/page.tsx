@@ -7,11 +7,11 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
 export const metadata: Metadata = {
   title: "Sobre Nós - GTSETTE Soluções Financeiras",
   description:
-    "Conheça a GTSETTE, sua parceira confiável na jornada de reabilitação financeira. Mais de 40 mil clientes atendidos com transparência, ética e resultados reais.",
+    "Conheça a GTSETTE, sua parceira confiável na jornada de reabilitação financeira. Mais de 80 mil clientes que limparam nome conosco com transparência, ética e resultados reais.",
   openGraph: {
     title: "Sobre Nós - GTSETTE Soluções Financeiras",
     description:
-      "Acreditamos na transparência como pilar fundamental. Mais de 40 mil clientes já transformaram suas vidas financeiras conosco.",
+      "Acreditamos na transparência como pilar fundamental. Mais de 80 mil clientes já transformaram suas vidas financeiras conosco.",
     url: `${siteUrl}/sobre`,
   },
 }
@@ -244,8 +244,8 @@ export default function SobrePage() {
           </div>
           <div className="grid gap-8 md:grid-cols-4">
             <div className="text-center">
-              <div className="mb-2 text-4xl font-bold md:text-5xl">10k+</div>
-              <p className="text-white/80">Clientes Atendidos</p>
+              <div className="mb-2 text-4xl font-bold md:text-5xl">80k+</div>
+              <p className="text-white/80">clientes que limparam nome conosco</p>
             </div>
             <div className="text-center">
               <div className="mb-2 text-4xl font-bold md:text-5xl">95%</div>
@@ -253,7 +253,7 @@ export default function SobrePage() {
             </div>
             <div className="text-center">
               <div className="mb-2 text-4xl font-bold md:text-5xl">R$ 50M+</div>
-              <p className="text-white/80">Negociados</p>
+              <p className="text-white/80">Retiradas dos Órgãos</p>
             </div>
             <div className="text-center">
               <div className="mb-2 text-4xl font-bold md:text-5xl">8 anos</div>

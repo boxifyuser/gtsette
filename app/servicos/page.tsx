@@ -7,13 +7,13 @@ import Link from "next/link"
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
 
 export const metadata: Metadata = {
-  title: "Serviços - Limpa Nome, Negociação de Dívidas e Recuperação de Crédito",
+  title: "Serviços - Limpa Nome, Retirada de Dívidas (Lei 8078) e Recuperação de Crédito",
   description:
-    "Conheça nossos serviços: Limpeza de Nome, Negociação de Dívidas, Análise de Crédito, Consultoria Financeira e muito mais. Mais de 40 mil clientes atendidos.",
+    "Conheça nossos serviços: Limpeza de Nome, Retirada de Dívidas dos Órgãos (Lei 8078), Análise de Crédito, Consultoria Financeira e muito mais. Mais de 80 mil clientes que limparam nome conosco.",
   openGraph: {
     title: "Serviços GTSETTE - Limpa Nome e Recuperação de Crédito",
     description:
-      "Soluções completas para recuperar seu crédito: Limpeza de Nome, Negociação de Dívidas, Aumento de Score e muito mais.",
+      "Soluções completas para recuperar seu crédito: Limpeza de Nome, Retirada de Dívidas dos Órgãos (Lei 8078), Restauração de Score e muito mais.",
     url: `${siteUrl}/servicos`,
   },
 }
@@ -33,13 +33,13 @@ export default function ServicosPage() {
     },
     {
       icon: HandshakeIcon,
-      title: "Negociação de Dívidas",
-      description: "Buscamos as melhores condições para quitação das suas dívidas com descontos significativos.",
+      title: "Retirada de Dívidas dos Órgãos",
+      description: "Trabalhamos com a Lei 8078 (CDC), artigos 42 e 43, retirando sua dívida dos órgãos de proteção ao crédito.",
       features: [
-        "Até 90% de desconto",
-        "Parcelamento facilitado",
-        "Negociação direta com credores",
-        "Acordo formalizado",
+        "Base legal no Código de Defesa do Consumidor",
+        "Artigos 42 e 43 da Lei 8078",
+        "Retirada da dívida dos órgãos de proteção",
+        "Atendimento especializado",
       ],
     },
     {

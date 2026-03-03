@@ -147,7 +147,7 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
       className="w-full rounded-xl border border-white/20 bg-white/5 p-4 shadow-xl backdrop-blur-sm sm:rounded-2xl sm:p-6 lg:p-8"
     >
       <p className="mb-4 text-xs font-medium uppercase tracking-wider text-white/80 sm:mb-6 sm:text-sm">
-        Receba uma Avaliação Gratuita do seu CPF ou CNPJ.
+        Receba uma Avaliação do seu CPF ou CNPJ.
       </p>
       {error && (
         <p className="mb-4 rounded-lg bg-red-500/20 px-3 py-2 text-sm text-red-200">

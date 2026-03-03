@@ -20,7 +20,7 @@ export function Footer() {
               />
             </Link>
             <p className="mb-4 text-sm text-gray-300">
-              Especialistas em Limpa Nome e restauração de Score. Já ajudamos mais de 40 mil brasileiros a retomarem sua
+              Especialistas em Limpa Nome e restauração de Score. Já ajudamos mais de 80 mil brasileiros a retomarem sua
               vida financeira.
             </p>
             <div className="flex gap-3">
@@ -92,8 +92,8 @@ export function Footer() {
             <h4 className="mb-4 font-semibold text-white">Serviços</h4>
             <ul className="space-y-2 text-sm text-gray-300">
               <li>Limpa Nome</li>
-              <li>Negociação de Dívidas</li>
-              <li>Aumento de Score</li>
+              <li>Retirada de Dívidas dos Órgãos</li>
+              <li>Restauração de Score</li>
               <li>Regularização Financeira</li>
               <li>Restauração de Crédito</li>
             </ul>
