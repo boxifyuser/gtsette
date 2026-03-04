@@ -113,7 +113,7 @@ export default function Home() {
                   className="h-14 bg-gradient-to-r from-primary via-primary-hover to-primary px-8 text-base font-semibold text-white shadow-lg transition-all hover:shadow-xl"
                 >
                   <a
-                    href="https://wa.me/5531987654321"
+                    href="https://wa.me/5531982506478"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2"
