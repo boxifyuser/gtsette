@@ -124,7 +124,7 @@ export default function RootLayout({
     },
     contactPoint: {
       "@type": "ContactPoint",
-      telephone: "+55-31-98765-4321",
+      telephone: "+55-31-98250-6478",
       contactType: "customer service",
       areaServed: "BR",
       availableLanguage: "Portuguese",

@@ -107,7 +107,7 @@ export function Footer() {
               <li className="flex items-start gap-2">
                 <Phone className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <div>
-                  <p>(31) 98765-4321</p>
+                  <p>(31) 98250-6478</p>
                 </div>
               </li>
               <li className="flex items-start gap-2">
@@ -125,7 +125,7 @@ export function Footer() {
             </ul>
             <Button asChild className="mt-4 w-full bg-primary text-white hover:bg-primary-hover" size="sm">
               <a
-                href="https://wa.me/5531987654321"
+                href="https://wa.me/5531982506478"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2"

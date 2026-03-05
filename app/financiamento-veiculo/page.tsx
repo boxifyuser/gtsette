@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
-const WHATSAPP_URL = "https://wa.me/5531987654321"
+const WHATSAPP_URL = "https://wa.me/5531982506478"
 const WHATSAPP_MSG_VEICULO =
   "Olá! Quero financiar um carro e preciso organizar meu nome. Pode me ajudar?"
 

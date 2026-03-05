@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -39,14 +39,17 @@ type Process = {
 
 export default function MinhaContaPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [cpf, setCpf] = useState("")
+  const [document, setDocument] = useState("")
   const [birthDate, setBirthDate] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [sessionCheckDone, setSessionCheckDone] = useState(false)
+  const [leadData, setLeadData] = useState<Record<string, unknown> | null>(null)
+  const [loadingLead, setLoadingLead] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState<ProcessStatus | "todos">("todos")
   const [selectedProcess, setSelectedProcess] = useState<string | null>(null)
 
-  // Mock data - em produção viria de uma API
+  // Mock data - usado apenas como fallback se lead não carregar
   const processes: Process[] = [
     {
       id: "1",
@@ -174,13 +177,20 @@ export default function MinhaContaPage() {
     },
   ]
 
-  const formatCPF = (value: string) => {
+  const formatDocument = (value: string) => {
     const numbers = value.replace(/\D/g, "")
     if (numbers.length <= 11) {
       return numbers
         .replace(/(\d{3})(\d)/, "$1.$2")
         .replace(/(\d{3})(\d)/, "$1.$2")
         .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+    }
+    if (numbers.length <= 14) {
+      return numbers
+        .replace(/(\d{2})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{4})(\d{1,2})$/, "$1-$2")
     }
     return value
   }
@@ -193,40 +203,76 @@ export default function MinhaContaPage() {
     return value
   }
 
-  const validateCPF = (cpf: string): boolean => {
-    const numbers = cpf.replace(/\D/g, "")
-    if (numbers.length !== 11) return false
-    if (/^(\d)\1+$/.test(numbers)) return false
-
-    let sum = 0
-    let remainder
-
-    for (let i = 1; i <= 9; i++) {
-      sum += Number.parseInt(numbers.substring(i - 1, i)) * (11 - i)
+  const validateDocument = (doc: string): boolean => {
+    const numbers = doc.replace(/\D/g, "")
+    if (numbers.length === 11) {
+      if (/^(\d)\1+$/.test(numbers)) return false
+      let sum = 0
+      for (let i = 1; i <= 9; i++) {
+        sum += Number.parseInt(numbers[i - 1], 10) * (11 - i)
+      }
+      let remainder = (sum * 10) % 11
+      if (remainder === 10) remainder = 0
+      if (remainder !== Number.parseInt(numbers[9], 10)) return false
+      sum = 0
+      for (let i = 1; i <= 10; i++) {
+        sum += Number.parseInt(numbers[i - 1], 10) * (12 - i)
+      }
+      remainder = (sum * 10) % 11
+      if (remainder === 10) remainder = 0
+      if (remainder !== Number.parseInt(numbers[10], 10)) return false
+      return true
     }
-    remainder = (sum * 10) % 11
-    if (remainder === 10 || remainder === 11) remainder = 0
-    if (remainder !== Number.parseInt(numbers.substring(9, 10))) return false
-
-    sum = 0
-    for (let i = 1; i <= 10; i++) {
-      sum += Number.parseInt(numbers.substring(i - 1, i)) * (12 - i)
+    if (numbers.length === 14) {
+      if (/^(\d)\1+$/.test(numbers)) return false
+      const w1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+      let sum = 0
+      for (let i = 0; i < 12; i++) sum += Number.parseInt(numbers[i], 10) * w1[i]
+      let remainder = sum % 11
+      if (remainder < 2) remainder = 0
+      else remainder = 11 - remainder
+      if (remainder !== Number.parseInt(numbers[12], 10)) return false
+      const w2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+      sum = 0
+      for (let i = 0; i < 13; i++) sum += Number.parseInt(numbers[i], 10) * w2[i]
+      remainder = sum % 11
+      if (remainder < 2) remainder = 0
+      else remainder = 11 - remainder
+      if (remainder !== Number.parseInt(numbers[13], 10)) return false
+      return true
     }
-    remainder = (sum * 10) % 11
-    if (remainder === 10 || remainder === 11) remainder = 0
-    if (remainder !== Number.parseInt(numbers.substring(10, 11))) return false
-
-    return true
+    return false
   }
+
+  useEffect(() => {
+    fetch("/api/auth/session")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.session) setIsLoggedIn(true)
+      })
+      .finally(() => setSessionCheckDone(true))
+  }, [])
+
+  useEffect(() => {
+    if (!isLoggedIn) return
+    setLoadingLead(true)
+    fetch("/api/minha-conta/lead")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.lead) setLeadData(data.lead)
+        else setLeadData(null)
+      })
+      .catch(() => setLeadData(null))
+      .finally(() => setLoadingLead(false))
+  }, [isLoggedIn])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setLoading(true)
 
-    // Validação
-    if (!validateCPF(cpf)) {
-      setError("CPF inválido. Por favor, verifique os dados.")
+    if (!validateDocument(document)) {
+      setError("CPF ou CNPJ inválido. Verifique os dados.")
       setLoading(false)
       return
     }
@@ -237,22 +283,33 @@ export default function MinhaContaPage() {
       return
     }
 
-    // Validação do CPF de teste
-    const cpfNumbers = cpf.replace(/\D/g, "")
-    const testCPF = "10585847665"
-    const testDate = "28/09/1994"
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ document, birthDate }),
+      })
+      const data = await res.json()
 
-    if (cpfNumbers === testCPF && birthDate === testDate) {
-      // Simulação de chamada à API
-      setTimeout(() => {
+      if (data.success) {
         setIsLoggedIn(true)
-        setSelectedProcess(processes[0]?.id || null)
-        setLoading(false)
-      }, 1000)
-    } else {
-      setError("CPF ou data de nascimento incorretos. Use o CPF de teste: 105.858.476-65 e data: 28/09/1994")
+      } else {
+        setError(data.error || "Não foi possível entrar. Tente novamente.")
+      }
+    } catch {
+      setError("Erro de conexão. Tente novamente.")
+    } finally {
       setLoading(false)
     }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+    } catch {
+      /* ignore */
+    }
+    setIsLoggedIn(false)
   }
 
   const getStatusBadge = (status: ProcessStatus) => {
@@ -324,6 +381,14 @@ export default function MinhaContaPage() {
 
   const currentProcess = processes.find((p) => p.id === selectedProcess) || processes[0]
 
+  if (!sessionCheckDone) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
+    )
+  }
+
   if (!isLoggedIn) {
     return (
       <div className="flex min-h-screen flex-col">
@@ -344,19 +409,19 @@ export default function MinhaContaPage() {
               <CardHeader>
                 <CardTitle>Entrar na sua conta</CardTitle>
                 <CardDescription>
-                  Digite seu CPF e data de nascimento para acessar sua área pessoal
+                  Digite seu CPF ou CNPJ e data de nascimento para acessar sua área pessoal (autenticação via Boxify).
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleLogin} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="cpf">CPF</Label>
+                    <Label htmlFor="document">CPF ou CNPJ</Label>
                     <Input
-                      id="cpf"
-                      placeholder="000.000.000-00"
-                      value={cpf}
-                      onChange={(e) => setCpf(formatCPF(e.target.value))}
-                      maxLength={14}
+                      id="document"
+                      placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                      value={document}
+                      onChange={(e) => setDocument(formatDocument(e.target.value))}
+                      maxLength={18}
                       required
                     />
                   </div>
@@ -380,11 +445,6 @@ export default function MinhaContaPage() {
                     {loading ? "Entrando..." : "Entrar"}
                   </Button>
                 </form>
-                <div className="mt-4 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
-                  <p className="font-semibold">Dados de teste:</p>
-                  <p>CPF: 105.858.476-65</p>
-                  <p>Data de Nascimento: 28/09/1994</p>
-                </div>
               </CardContent>
             </Card>
           </div>
@@ -406,7 +466,7 @@ export default function MinhaContaPage() {
                 coordenação.
               </p>
             </div>
-            <Button variant="outline" onClick={() => setIsLoggedIn(false)}>
+            <Button variant="outline" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </Button>
@@ -414,324 +474,114 @@ export default function MinhaContaPage() {
         </div>
       </section>
 
-      {/* Main Content */}
+      {/* Conteúdo da sessão logada: apenas o card do lead */}
       <section className="flex-1 px-4 py-8">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid gap-8 lg:grid-cols-2">
-            {/* Left Column - Processos */}
-            <div className="space-y-6">
-              <div>
-                <h2 className="mb-2 text-xl font-bold">PROCESSOS</h2>
-                <p className="text-sm text-muted-foreground">
-                  Veja abaixo as listas em andamento, 100% baixadas ou em reprotocolo. Clique em uma lista para
-                  visualizar detalhes por órgão.
-                </p>
-              </div>
-
-              {/* Filters */}
-              <div className="flex flex-wrap gap-2">
-                {(["todos", "em-andamento", "100-baixado", "reprotocolo"] as const).map((filter) => (
-                  <Button
-                    key={filter}
-                    variant={selectedFilter === filter ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedFilter(filter)}
-                    className={
-                      selectedFilter === filter
-                        ? "bg-primary text-white"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }
-                  >
-                    {filter === "todos" && "Todos"}
-                    {filter === "em-andamento" && (
-                      <>
-                        <div className="mr-1 h-2 w-2 rounded-full bg-blue-500" />
-                        Em andamento
-                      </>
-                    )}
-                    {filter === "100-baixado" && (
-                      <>
-                        <div className="mr-1 h-2 w-2 rounded-full bg-green-500" />
-                        100% baixado
-                      </>
-                    )}
-                    {filter === "reprotocolo" && (
-                      <>
-                        <div className="mr-1 h-2 w-2 rounded-full bg-amber-500" />
-                        Reprotocolo
-                      </>
-                    )}
-                  </Button>
-                ))}
-              </div>
-
-              {/* Process List */}
-              <div className="space-y-3">
-                {filteredProcesses.map((process) => (
-                  <Card
-                    key={process.id}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      selectedProcess === process.id ? "border-primary border-2 bg-primary/5" : ""
-                    }`}
-                    onClick={() => setSelectedProcess(process.id)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <p className="mb-1 text-sm font-semibold text-muted-foreground">{process.date}</p>
-                          <p className="mb-2 font-semibold">Processo coletivo</p>
-                          <div className="mb-2">{getStatusBadge(process.status)}</div>
-                          <p className="text-xs text-muted-foreground">Atualizado: {process.lastUpdate}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Legend */}
-              <div className="rounded-lg border bg-muted/50 p-4">
-                <p className="mb-2 text-sm font-semibold">Legenda:</p>
-                <div className="space-y-1 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-blue-500" />
-                    <span>Em andamento</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-green-500" />
-                    <span>100% baixado</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-amber-500" />
-                    <span>Reprotocolo</span>
-                  </div>
-                </div>
-              </div>
+        <div className="container mx-auto max-w-2xl">
+          {loadingLead && (
+            <div className="flex justify-center py-12">
+              <p className="text-muted-foreground">Carregando seus dados...</p>
             </div>
-
-            {/* Right Column - Process Details */}
-            <div className="space-y-6">
-              <div>
-                <h2 className="mb-2 text-xl font-bold">Lista {currentProcess?.date}</h2>
-                <p className="text-sm text-muted-foreground">
-                  Visualize abaixo o resumo do processo coletivo dessa lista e a situação em cada órgão.
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Última atualização {currentProcess?.lastUpdate}
-                </p>
-              </div>
-
-              {/* Process Summary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Resumo do processo desta lista</CardTitle>
-                  <CardDescription>STATUS GERAL</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(currentProcess?.status || "em-andamento")}
-                    <span className="text-sm font-semibold">
-                      PROCESSO COLETIVO - LISTA {currentProcess?.date}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    As informações acima refletem o status global desta lista na operação coletiva. Detalhes por
-                    órgão, com descrição e datas, estão disponibilizados abaixo.
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Situation by Organ */}
-              <div>
-                <h3 className="mb-4 text-lg font-semibold">Situação por órgão</h3>
-                <div className="mb-4 flex flex-wrap gap-2 text-sm font-medium text-muted-foreground">
-                  {Object.keys(currentProcess?.organs || {}).map((key) => {
-                    const organNames: Record<string, string> = {
-                      serasa: "SERASA",
-                      spc: "SPC",
-                      boaVista: "BOA VISTA",
-                      cenprotSP: "CENPROT SP",
-                      cenprotNacional: "CENPROT NACIONAL",
-                      outros: "OUTROS",
-                    }
-                    return (
-                      <span key={key} className="cursor-pointer hover:text-primary">
-                        {organNames[key] || key.toUpperCase()}
-                      </span>
-                    )
-                  })}
-                </div>
-
-                <div className="space-y-4">
-                  {currentProcess?.organs.serasa && (
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">SERASA</CardTitle>
-                          {getOrganStatusBadge(currentProcess.organs.serasa.status)}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-2 text-sm">
-                        {currentProcess.organs.serasa.details.map((detail, idx) => (
-                          <p key={idx} className="text-muted-foreground">
-                            {detail}
-                          </p>
-                        ))}
-                        {currentProcess.organs.serasa.warning && (
-                          <Alert className="mt-3 border-amber-500 bg-amber-50">
-                            <AlertTriangle className="h-4 w-4 text-amber-600" />
-                            <AlertDescription className="text-amber-800">
-                              {currentProcess.organs.serasa.warning}
-                            </AlertDescription>
-                          </Alert>
-                        )}
-                        {currentProcess.organs.serasa.lastProtocol && (
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            Último protocolo enviado: {currentProcess.organs.serasa.lastProtocol}
-                          </p>
-                        )}
-                        {currentProcess.organs.serasa.received && (
-                          <p className="text-xs text-muted-foreground">
-                            Recepcionado: {currentProcess.organs.serasa.received}
-                          </p>
-                        )}
-                        {currentProcess.organs.serasa.started && (
-                          <p className="text-xs text-muted-foreground">
-                            Baixas iniciadas: {currentProcess.organs.serasa.started}
-                          </p>
-                        )}
-                        {currentProcess.organs.serasa.completed && (
-                          <p className="text-xs text-muted-foreground">
-                            Baixas concluídas: {currentProcess.organs.serasa.completed}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
+          )}
+          {!loadingLead && !leadData && (
+            <Alert>
+              <AlertDescription>Não foi possível carregar os dados do seu cadastro. Faça logout e entre novamente.</AlertDescription>
+            </Alert>
+          )}
+          {!loadingLead && leadData && (
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-muted/50">
+                <CardTitle className="text-xl">Seu cadastro</CardTitle>
+                <CardDescription>Dados do seu cadastro na base</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <dl className="space-y-4">
+                  {leadData.name != null && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">Nome</dt>
+                      <dd className="mt-1 text-base font-medium">{String(leadData.name)}</dd>
+                    </div>
                   )}
-
-                  {currentProcess?.organs.spc && (
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">SPC</CardTitle>
-                          {getOrganStatusBadge(currentProcess.organs.spc.status)}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-2 text-sm">
-                        {currentProcess.organs.spc.details.map((detail, idx) => (
-                          <p key={idx} className="text-muted-foreground">
-                            {detail}
-                          </p>
-                        ))}
-                        {currentProcess.organs.spc.completed && (
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            Baixas concluídas: {currentProcess.organs.spc.completed}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                  {leadData.email != null && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">E-mail</dt>
+                      <dd className="mt-1 text-base">{String(leadData.email)}</dd>
+                    </div>
                   )}
-
-                  {currentProcess?.organs.boaVista && (
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">BOA VISTA</CardTitle>
-                          {getOrganStatusBadge(currentProcess.organs.boaVista.status)}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-2 text-sm">
-                        {currentProcess.organs.boaVista.details.map((detail, idx) => (
-                          <p key={idx} className="text-muted-foreground">
-                            {detail}
-                          </p>
-                        ))}
-                        {currentProcess.organs.boaVista.completed && (
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            Baixas concluídas: {currentProcess.organs.boaVista.completed}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                  {leadData.phone != null && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">Telefone</dt>
+                      <dd className="mt-1 text-base">{String(leadData.phone)}</dd>
+                    </div>
                   )}
-
-                  {currentProcess?.organs.cenprotSP && (
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">CENPROT SP</CardTitle>
-                          {getOrganStatusBadge(currentProcess.organs.cenprotSP.status)}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-2 text-sm">
-                        {currentProcess.organs.cenprotSP.details.map((detail, idx) => (
-                          <p key={idx} className="text-muted-foreground">
-                            {detail}
-                          </p>
-                        ))}
-                        {currentProcess.organs.cenprotSP.lastProtocol && (
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            Último protocolo enviado: {currentProcess.organs.cenprotSP.lastProtocol}
-                          </p>
-                        )}
-                        {currentProcess.organs.cenprotSP.received && (
-                          <p className="text-xs text-muted-foreground">
-                            Recepcionado: {currentProcess.organs.cenprotSP.received}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                  {leadData.document != null && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">CPF/CNPJ</dt>
+                      <dd className="mt-1 text-base">{String(leadData.document)}</dd>
+                    </div>
                   )}
-
-                  {currentProcess?.organs.cenprotNacional && (
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">CENPROT NACIONAL</CardTitle>
-                          {getOrganStatusBadge(currentProcess.organs.cenprotNacional.status)}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-2 text-sm">
-                        {currentProcess.organs.cenprotNacional.details.map((detail, idx) => (
-                          <p key={idx} className="text-muted-foreground">
-                            {detail}
-                          </p>
-                        ))}
-                        {currentProcess.organs.cenprotNacional.lastProtocol && (
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            Último protocolo enviado: {currentProcess.organs.cenprotNacional.lastProtocol}
-                          </p>
-                        )}
-                        {currentProcess.organs.cenprotNacional.received && (
-                          <p className="text-xs text-muted-foreground">
-                            Recepcionado: {currentProcess.organs.cenprotNacional.received}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                  {leadData.status != null && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">Status</dt>
+                      <dd className="mt-1">
+                        <Badge variant="secondary">{String(leadData.status)}</Badge>
+                      </dd>
+                    </div>
                   )}
-
-                  {currentProcess?.organs.outros && (
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">OUTROS</CardTitle>
-                          {getOrganStatusBadge(currentProcess.organs.outros.status)}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-2 text-sm">
-                        {currentProcess.organs.outros.details.map((detail, idx) => (
-                          <p key={idx} className="text-muted-foreground">
-                            {detail}
-                          </p>
-                        ))}
-                      </CardContent>
-                    </Card>
+                  {leadData.value != null && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">Valor</dt>
+                      <dd className="mt-1 text-base">{Number(leadData.value)}</dd>
+                    </div>
                   )}
-                </div>
-              </div>
-            </div>
-          </div>
+                  {leadData.score != null && (
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">Score</dt>
+                      <dd className="mt-1 text-base">{Number(leadData.score)}</dd>
+                    </div>
+                  )}
+                  {leadData.custom_fields && typeof leadData.custom_fields === "object" && !Array.isArray(leadData.custom_fields) && (
+                    <div className="border-t pt-4 mt-4">
+                      <dt className="text-sm font-medium text-muted-foreground mb-2">Campos personalizados</dt>
+                      <dd className="mt-1 space-y-2">
+                        {Object.entries(leadData.custom_fields as Record<string, unknown>).map(([key, value]) => {
+                          const label =
+                            key === "datadenascimento"
+                              ? "Data de nascimento"
+                              : key === "datadaatualizacao"
+                                ? "Data da atualização"
+                                : key === "datadalista"
+                                  ? "Data da lista"
+                                  : key === "datadeconclusao"
+                                    ? "Data de conclusão"
+                                    : key === "statusdoprocesso"
+                                      ? "Status do processo"
+                                      : key === "observacoes"
+                                        ? "Observações"
+                                        : key === "responsavel"
+                                          ? "Responsável"
+                                          : key === "tipodeprocesso"
+                                            ? "Tipo de processo"
+                                            : key
+                          return (
+                          <div key={key} className="flex flex-wrap gap-x-2 text-sm">
+                            <span className="font-medium text-muted-foreground">{label}:</span>
+                            <span>
+                              {Array.isArray(value)
+                                ? value.join(", ")
+                                : typeof value === "object" && value !== null
+                                  ? JSON.stringify(value)
+                                  : String(value)}
+                            </span>
+                          </div>
+                          )
+                        })}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </section>
     </div>

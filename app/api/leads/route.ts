@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
       score,
       pipeline_id,
       stage_id,
+      custom_fields,
     } = body
 
     if (!name || typeof name !== "string" || name.trim() === "") {
@@ -74,6 +75,9 @@ export async function POST(request: NextRequest) {
     if (score !== undefined && Number.isFinite(Number(score))) payload.score = Math.min(100, Math.max(0, Number(score)))
     if (pipeline_id && String(pipeline_id).trim()) payload.pipeline_id = String(pipeline_id).trim()
     if (stage_id && String(stage_id).trim()) payload.stage_id = String(stage_id).trim()
+    if (custom_fields && typeof custom_fields === "object" && !Array.isArray(custom_fields)) {
+      payload.custom_fields = custom_fields
+    }
 
     const res = await fetch(`${baseUrl.replace(/\/$/, "")}/leads`, {
       method: "POST",

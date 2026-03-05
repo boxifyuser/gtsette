@@ -31,6 +31,7 @@ export function Header() {
             priority
             quality={100}
             className="h-[100px] min-h-[100px] w-auto object-contain"
+            style={{ width: "auto", height: "100px" }}
           />
         </Link>
 

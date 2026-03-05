@@ -13,7 +13,7 @@ import {
 import Link from "next/link"
 import { HeroFormImovel } from "@/components/forms/hero-form-imovel"
 
-const WHATSAPP_URL = "https://wa.me/5531987654321"
+const WHATSAPP_URL = "https://wa.me/5531982506478"
 const WHATSAPP_MSG_IMOVEL =
   "Olá! Quero aumentar minhas chances de aprovação no financiamento imobiliário."
 

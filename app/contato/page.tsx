@@ -75,8 +75,7 @@ export default function ContatoPage() {
                     <Phone className="mt-1 h-5 w-5 flex-shrink-0 text-primary" />
                     <div>
                       <p className="font-medium">Telefone</p>
-                      <p className="text-sm text-muted-foreground">(11) 98765-4321</p>
-                      <p className="text-sm text-muted-foreground">(11) 3456-7890</p>
+                      <p className="text-sm text-muted-foreground">(31) 98250-6478</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -208,9 +207,16 @@ export default function ContatoPage() {
           <p className="mb-6 text-muted-foreground">
             Fale diretamente com um de nossos especialistas através do WhatsApp
           </p>
-          <Button size="lg" className="bg-[#25D366] text-white hover:bg-[#20BA5A]">
-            <Phone className="mr-2 h-5 w-5" />
-            Chamar no WhatsApp
+          <Button asChild size="lg" className="bg-[#25D366] text-white hover:bg-[#20BA5A]">
+            <a
+              href="https://wa.me/5531982506478"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center"
+            >
+              <Phone className="mr-2 h-5 w-5" />
+              Chamar no WhatsApp
+            </a>
           </Button>
         </div>
       </section>
