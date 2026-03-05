@@ -85,6 +85,11 @@ export function Footer() {
                   Contato
                 </Link>
               </li>
+              <li>
+                <Link href="/privacidade" className="text-gray-300 transition-colors hover:text-primary">
+                  Política de Privacidade
+                </Link>
+              </li>
             </ul>
           </div>
 

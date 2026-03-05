@@ -1,254 +1,48 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Clock, CheckCircle2, AlertCircle, FileText, LogOut, AlertTriangle } from "lucide-react"
-
-type ProcessStatus = "iniciado" | "em-andamento" | "100-baixado" | "reprotocolo"
-
-type OrganStatus = {
-  name: string
-  status: "baixas-concluidas" | "aguardando-inicio" | "em-processamento" | "nao-iniciado"
-  details: string[]
-  lastProtocol?: string
-  received?: string
-  started?: string
-  completed?: string
-  warning?: string
-}
-
-type Process = {
-  id: string
-  date: string
-  status: ProcessStatus
-  lastUpdate: string
-  organs: {
-    serasa?: OrganStatus
-    spc?: OrganStatus
-    boaVista?: OrganStatus
-    cenprotSP?: OrganStatus
-    cenprotNacional?: OrganStatus
-    outros?: OrganStatus
-  }
-}
+import { Checkbox } from "@/components/ui/checkbox"
+import { LogOut, ChevronDown, ChevronRight } from "lucide-react"
 
 export default function MinhaContaPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [document, setDocument] = useState("")
-  const [birthDate, setBirthDate] = useState("")
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [registerMode, setRegisterMode] = useState(false)
+  const [passwordConfirm, setPasswordConfirm] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [sessionCheckDone, setSessionCheckDone] = useState(false)
-  const [leadData, setLeadData] = useState<Record<string, unknown> | null>(null)
+  const [leadsData, setLeadsData] = useState<Record<string, unknown>[] | null>(null)
   const [loadingLead, setLoadingLead] = useState(false)
-  const [selectedFilter, setSelectedFilter] = useState<ProcessStatus | "todos">("todos")
-  const [selectedProcess, setSelectedProcess] = useState<string | null>(null)
-
-  // Mock data - usado apenas como fallback se lead não carregar
-  const processes: Process[] = [
-    {
-      id: "1",
-      date: "07/11/2025",
-      status: "em-andamento",
-      lastUpdate: "19/12/2025 às 10:39",
-      organs: {
-        serasa: {
-          name: "SERASA",
-          status: "baixas-concluidas",
-          details: ["Baixas Concluídas."],
-          warning: "▲ certifique-se de fazer consultas atualizadas em tempo real. Caso não identifique baixas em sua consulta, faça novamente no dia subsequente.",
-          lastProtocol: "2025-12-04 às 17:24",
-          received: "2025-12-04 às 17:38",
-          started: "2025-11-26 às 16:20",
-          completed: "2025-12-19 às 10:30",
-        },
-        spc: {
-          name: "SPC",
-          status: "baixas-concluidas",
-          details: ["100% Baixado", "Baixas concluídas: 2025-12-05 às 10:15"],
-        },
-        boaVista: {
-          name: "BOA VISTA",
-          status: "baixas-concluidas",
-          details: ["100% Baixado", "Baixas concluídas: 2025-11-19 às 19:00"],
-        },
-        cenprotSP: {
-          name: "CENPROT SP",
-          status: "aguardando-inicio",
-          details: [
-            "Não foi cumprido o prazo máximo de baixas no dia 12/12/2025",
-            "Ainda não houve início significativo de baixas.",
-            "Último protocolo enviado: 2025-12-04 às 17:15",
-            "Recepcionado: 2025-12-04 às 17:29",
-          ],
-          lastProtocol: "2025-12-04 às 17:15",
-          received: "2025-12-04 às 17:29",
-        },
-        cenprotNacional: {
-          name: "CENPROT NACIONAL",
-          status: "aguardando-inicio",
-          details: [
-            "Não foi cumprido o prazo máximo de baixas no dia 12/12/2025",
-            "Ainda não houve início significativo de baixas.",
-            "Último protocolo enviado: 2025-12-04 às 17:15",
-            "Recepcionado: 2025-12-04 às 17:29",
-          ],
-          lastProtocol: "2025-12-04 às 17:15",
-          received: "2025-12-04 às 17:29",
-        },
-      },
-    },
-    {
-      id: "2",
-      date: "10/12/2025",
-      status: "em-andamento",
-      lastUpdate: "18/12/2025 às 14:20",
-      organs: {
-        serasa: {
-          name: "SERASA",
-          status: "em-processamento",
-          details: ["Baixas em processamento"],
-          started: "2025-12-15 às 09:00",
-        },
-        spc: {
-          name: "SPC",
-          status: "aguardando-inicio",
-          details: ["Aguardando início das baixas"],
-        },
-      },
-    },
-    {
-      id: "3",
-      date: "17/12/2025",
-      status: "100-baixado",
-      lastUpdate: "20/12/2025 às 16:45",
-      organs: {
-        serasa: {
-          name: "SERASA",
-          status: "baixas-concluidas",
-          details: ["100% Baixado", "Baixas concluídas: 2025-12-20 às 16:00"],
-          completed: "2025-12-20 às 16:00",
-        },
-        spc: {
-          name: "SPC",
-          status: "baixas-concluidas",
-          details: ["100% Baixado", "Baixas concluídas: 2025-12-19 às 14:30"],
-          completed: "2025-12-19 às 14:30",
-        },
-        boaVista: {
-          name: "BOA VISTA",
-          status: "baixas-concluidas",
-          details: ["100% Baixado", "Baixas concluídas: 2025-12-18 às 11:20"],
-          completed: "2025-12-18 às 11:20",
-        },
-      },
-    },
-    {
-      id: "4",
-      date: "28/11/2025",
-      status: "100-baixado",
-      lastUpdate: "15/12/2025 às 09:15",
-      organs: {
-        serasa: {
-          name: "SERASA",
-          status: "baixas-concluidas",
-          details: ["100% Baixado"],
-          completed: "2025-12-10 às 10:00",
-        },
-      },
-    },
-    {
-      id: "5",
-      date: "31/12/2025",
-      status: "reprotocolo",
-      lastUpdate: "21/12/2025 às 08:30",
-      organs: {
-        serasa: {
-          name: "SERASA",
-          status: "nao-iniciado",
-          details: ["Processo em reprotocolo"],
-        },
-      },
-    },
-  ]
-
-  const formatDocument = (value: string) => {
-    const numbers = value.replace(/\D/g, "")
-    if (numbers.length <= 11) {
-      return numbers
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
-    }
-    if (numbers.length <= 14) {
-      return numbers
-        .replace(/(\d{2})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{4})(\d{1,2})$/, "$1-$2")
-    }
-    return value
-  }
-
-  const formatDate = (value: string) => {
-    const numbers = value.replace(/\D/g, "")
-    if (numbers.length <= 8) {
-      return numbers.replace(/(\d{2})(\d)/, "$1/$2").replace(/(\d{2})(\d)/, "$1/$2")
-    }
-    return value
-  }
-
-  const validateDocument = (doc: string): boolean => {
-    const numbers = doc.replace(/\D/g, "")
-    if (numbers.length === 11) {
-      if (/^(\d)\1+$/.test(numbers)) return false
-      let sum = 0
-      for (let i = 1; i <= 9; i++) {
-        sum += Number.parseInt(numbers[i - 1], 10) * (11 - i)
-      }
-      let remainder = (sum * 10) % 11
-      if (remainder === 10) remainder = 0
-      if (remainder !== Number.parseInt(numbers[9], 10)) return false
-      sum = 0
-      for (let i = 1; i <= 10; i++) {
-        sum += Number.parseInt(numbers[i - 1], 10) * (12 - i)
-      }
-      remainder = (sum * 10) % 11
-      if (remainder === 10) remainder = 0
-      if (remainder !== Number.parseInt(numbers[10], 10)) return false
-      return true
-    }
-    if (numbers.length === 14) {
-      if (/^(\d)\1+$/.test(numbers)) return false
-      const w1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-      let sum = 0
-      for (let i = 0; i < 12; i++) sum += Number.parseInt(numbers[i], 10) * w1[i]
-      let remainder = sum % 11
-      if (remainder < 2) remainder = 0
-      else remainder = 11 - remainder
-      if (remainder !== Number.parseInt(numbers[12], 10)) return false
-      const w2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-      sum = 0
-      for (let i = 0; i < 13; i++) sum += Number.parseInt(numbers[i], 10) * w2[i]
-      remainder = sum % 11
-      if (remainder < 2) remainder = 0
-      else remainder = 11 - remainder
-      if (remainder !== Number.parseInt(numbers[13], 10)) return false
-      return true
-    }
-    return false
-  }
+  const [sessionUsername, setSessionUsername] = useState<string | null>(null)
+  const [cadastroNome, setCadastroNome] = useState("")
+  const [cadastroCpf, setCadastroCpf] = useState("")
+  const [cadastroEmail, setCadastroEmail] = useState("")
+  const [cadastroCnpj, setCadastroCnpj] = useState("")
+  const [cadastroLoading, setCadastroLoading] = useState(false)
+  const [cadastroSaving, setCadastroSaving] = useState(false)
+  const [cadastroError, setCadastroError] = useState("")
+  const [cadastroSuccess, setCadastroSuccess] = useState(false)
+  const [cadastroLgpdConsent, setCadastroLgpdConsent] = useState(false)
+  const [cadastroCompleto, setCadastroCompleto] = useState(false)
+  const [expandedProcessoId, setExpandedProcessoId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch("/api/auth/session")
       .then((r) => r.json())
       .then((data) => {
-        if (data?.session) setIsLoggedIn(true)
+        if (data?.session) {
+          setIsLoggedIn(true)
+          if (data.session.username) setSessionUsername(data.session.username)
+        }
       })
       .finally(() => setSessionCheckDone(true))
   }, [])
@@ -259,42 +53,144 @@ export default function MinhaContaPage() {
     fetch("/api/minha-conta/lead")
       .then((r) => r.json())
       .then((data) => {
-        if (data?.lead) setLeadData(data.lead)
-        else setLeadData(null)
+        setLeadsData(Array.isArray(data?.leads) ? data.leads : null)
       })
-      .catch(() => setLeadData(null))
+      .catch(() => setLeadsData(null))
       .finally(() => setLoadingLead(false))
   }, [isLoggedIn])
+
+  const formatCpfInput = (value: string) => {
+    const n = value.replace(/\D/g, "").slice(0, 11)
+    return n.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+  }
+  const formatCnpjInput = (value: string) => {
+    const n = value.replace(/\D/g, "").slice(0, 14)
+    return n
+      .replace(/(\d{2})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{4})(\d{1,2})$/, "$1-$2")
+  }
+
+  const handleCadastroSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCadastroError("")
+    setCadastroSuccess(false)
+    setCadastroSaving(true)
+    try {
+      const res = await fetch("/api/minha-conta/cadastro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome_completo: cadastroNome.trim(),
+          cpf: cadastroCpf.replace(/\D/g, ""),
+          email: cadastroEmail.trim(),
+          cnpj: cadastroCnpj.trim() ? cadastroCnpj.replace(/\D/g, "") : null,
+          lgpd_consent: cadastroLgpdConsent,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setCadastroSuccess(true)
+        setCadastroCompleto(true)
+        fetch("/api/minha-conta/lead")
+          .then((r) => r.json())
+          .then((d) => setLeadsData(Array.isArray(d?.leads) ? d.leads : null))
+          .catch(() => {})
+      } else {
+        setCadastroError(data.error || "Erro ao salvar cadastro.")
+      }
+    } catch {
+      setCadastroError("Erro de conexão. Tente novamente.")
+    } finally {
+      setCadastroSaving(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!isLoggedIn || !sessionUsername) return
+    setCadastroLoading(true)
+    fetch("/api/minha-conta/cadastro")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.cadastro) {
+          const c = data.cadastro
+          setCadastroNome(c.nome_completo ?? "")
+          setCadastroCpf(c.cpf ? formatCpfInput(c.cpf) : "")
+          setCadastroEmail(c.email ?? "")
+          setCadastroCnpj(c.cnpj ? formatCnpjInput(c.cnpj) : "")
+          setCadastroLgpdConsent(Boolean(c.lgpd_consent))
+          const hasRequired = (c.nome_completo ?? "").trim().length >= 2 && (c.cpf ?? "").replace(/\D/g, "").length === 11 && (c.email ?? "").trim().length > 0 && Boolean(c.lgpd_consent)
+          setCadastroCompleto(!!hasRequired)
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCadastroLoading(false))
+  }, [isLoggedIn, sessionUsername])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setLoading(true)
-
-    if (!validateDocument(document)) {
-      setError("CPF ou CNPJ inválido. Verifique os dados.")
+    if (!username.trim()) {
+      setError("Digite o usuário.")
       setLoading(false)
       return
     }
-
-    if (birthDate.replace(/\D/g, "").length !== 8) {
-      setError("Data de nascimento inválida. Use o formato DD/MM/AAAA.")
+    if (!password) {
+      setError("Digite a senha.")
       setLoading(false)
       return
     }
-
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ document, birthDate }),
+        body: JSON.stringify({ username: username.trim(), password }),
       })
       const data = await res.json()
-
       if (data.success) {
         setIsLoggedIn(true)
       } else {
         setError(data.error || "Não foi possível entrar. Tente novamente.")
+      }
+    } catch {
+      setError("Erro de conexão. Tente novamente.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setLoading(true)
+    if (!username.trim()) {
+      setError("Digite o usuário.")
+      setLoading(false)
+      return
+    }
+    if (password.length < 6) {
+      setError("A senha deve ter pelo menos 6 caracteres.")
+      setLoading(false)
+      return
+    }
+    if (password !== passwordConfirm) {
+      setError("As senhas não coincidem.")
+      setLoading(false)
+      return
+    }
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username.trim(), password }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setIsLoggedIn(true)
+      } else {
+        setError(data.error || "Não foi possível criar a conta.")
       }
     } catch {
       setError("Erro de conexão. Tente novamente.")
@@ -311,75 +207,6 @@ export default function MinhaContaPage() {
     }
     setIsLoggedIn(false)
   }
-
-  const getStatusBadge = (status: ProcessStatus) => {
-    switch (status) {
-      case "iniciado":
-        return (
-          <Badge variant="outline" className="border-blue-500 bg-blue-50 text-blue-700">
-            <div className="mr-1 h-2 w-2 rounded-full bg-blue-500" />
-            INICIADO
-          </Badge>
-        )
-      case "em-andamento":
-        return (
-          <Badge variant="outline" className="border-blue-500 bg-blue-50 text-blue-700">
-            <div className="mr-1 h-2 w-2 rounded-full bg-blue-500" />
-            EM ANDAMENTO
-          </Badge>
-        )
-      case "100-baixado":
-        return (
-          <Badge variant="outline" className="border-green-500 bg-green-50 text-green-700">
-            <div className="mr-1 h-2 w-2 rounded-full bg-green-500" />
-            100% BAIXADO
-          </Badge>
-        )
-      case "reprotocolo":
-        return (
-          <Badge variant="outline" className="border-amber-500 bg-amber-50 text-amber-700">
-            <div className="mr-1 h-2 w-2 rounded-full bg-amber-500" />
-            REPROTOCOLO
-          </Badge>
-        )
-    }
-  }
-
-  const getOrganStatusBadge = (status: OrganStatus["status"]) => {
-    switch (status) {
-      case "baixas-concluidas":
-        return (
-          <Badge className="bg-green-500 text-white hover:bg-green-600">
-            Baixas concluídas
-          </Badge>
-        )
-      case "aguardando-inicio":
-        return (
-          <Badge className="bg-amber-500 text-white hover:bg-amber-600">
-            Aguardando início das baixas
-          </Badge>
-        )
-      case "em-processamento":
-        return (
-          <Badge className="bg-blue-500 text-white hover:bg-blue-600">
-            Em processamento
-          </Badge>
-        )
-      case "nao-iniciado":
-        return (
-          <Badge variant="outline" className="border-gray-500 text-gray-700">
-            Não iniciado
-          </Badge>
-        )
-    }
-  }
-
-  const filteredProcesses = processes.filter((process) => {
-    if (selectedFilter === "todos") return true
-    return process.status === selectedFilter
-  })
-
-  const currentProcess = processes.find((p) => p.id === selectedProcess) || processes[0]
 
   if (!sessionCheckDone) {
     return (
@@ -402,49 +229,131 @@ export default function MinhaContaPage() {
           </div>
         </section>
 
-        {/* Login Form */}
+        {/* Login / Registro */}
         <section className="bg-background px-4 py-16">
           <div className="container mx-auto max-w-md">
             <Card>
               <CardHeader>
-                <CardTitle>Entrar na sua conta</CardTitle>
+                <CardTitle>{registerMode ? "Criar conta" : "Entrar na sua conta"}</CardTitle>
                 <CardDescription>
-                  Digite seu CPF ou CNPJ e data de nascimento para acessar sua área pessoal (autenticação via Boxify).
+                  {registerMode
+                    ? "Preencha os dados para criar sua conta (auth Neon)."
+                    : "Digite usuário e senha para acessar sua área pessoal (auth Neon)."}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleLogin} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="document">CPF ou CNPJ</Label>
-                    <Input
-                      id="document"
-                      placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                      value={document}
-                      onChange={(e) => setDocument(formatDocument(e.target.value))}
-                      maxLength={18}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="birthDate">Data de Nascimento</Label>
-                    <Input
-                      id="birthDate"
-                      placeholder="DD/MM/AAAA"
-                      value={birthDate}
-                      onChange={(e) => setBirthDate(formatDate(e.target.value))}
-                      maxLength={10}
-                      required
-                    />
-                  </div>
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Entrando..." : "Entrar"}
-                  </Button>
-                </form>
+                {registerMode ? (
+                  <form onSubmit={handleRegister} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="reg-username">Usuário</Label>
+                      <Input
+                        id="reg-username"
+                        type="text"
+                        autoComplete="username"
+                        placeholder="seu_usuario"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        minLength={2}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reg-password">Senha</Label>
+                      <Input
+                        id="reg-password"
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="Mínimo 6 caracteres"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        minLength={6}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="reg-password-confirm">Confirmar senha</Label>
+                      <Input
+                        id="reg-password-confirm"
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="Repita a senha"
+                        value={passwordConfirm}
+                        onChange={(e) => setPasswordConfirm(e.target.value)}
+                        minLength={6}
+                        required
+                      />
+                    </div>
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    )}
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Criando conta..." : "Criar conta"}
+                    </Button>
+                    <p className="text-center text-sm text-muted-foreground">
+                      Já tem conta?{" "}
+                      <button
+                        type="button"
+                        className="font-medium text-primary underline underline-offset-2 hover:no-underline"
+                        onClick={() => {
+                          setRegisterMode(false)
+                          setError("")
+                        }}
+                      >
+                        Entrar
+                      </button>
+                    </p>
+                  </form>
+                ) : (
+                  <form onSubmit={handleLogin} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Usuário</Label>
+                      <Input
+                        id="username"
+                        type="text"
+                        autoComplete="username"
+                        placeholder="seu_usuario"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Senha</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    )}
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Entrando..." : "Entrar"}
+                    </Button>
+                    <p className="text-center text-sm text-muted-foreground">
+                      Não tem conta?{" "}
+                      <button
+                        type="button"
+                        className="font-medium text-primary underline underline-offset-2 hover:no-underline"
+                        onClick={() => {
+                          setRegisterMode(true)
+                          setError("")
+                        }}
+                      >
+                        Criar conta
+                      </button>
+                    </p>
+                  </form>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -460,7 +369,9 @@ export default function MinhaContaPage() {
         <div className="container mx-auto max-w-7xl">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">Minha Conta</h1>
+              <h1 className="text-2xl font-bold">
+                Minha Conta{sessionUsername ? ` — ${sessionUsername}` : ""}
+              </h1>
               <p className="text-sm text-muted-foreground">
                 Página de consulta com informações em tempo real. As atualizações são realizadas exclusivamente pela
                 coordenação.
@@ -474,113 +385,235 @@ export default function MinhaContaPage() {
         </div>
       </section>
 
-      {/* Conteúdo da sessão logada: apenas o card do lead */}
+      {/* Cadastro (Nome, CPF, E-mail, CNPJ) - apenas para login Neon */}
+      {sessionUsername && (
+        <section className="border-b bg-muted/30 px-4 py-8">
+          <div className="container mx-auto max-w-2xl">
+            {!cadastroCompleto && (
+              <Alert className="mb-6 border-primary/50 bg-primary/5">
+                <AlertDescription>
+                  <strong>Complete seu cadastro para ter acesso ao seu processo.</strong> Preencha os dados abaixo e aceite o consentimento LGPD.
+                </AlertDescription>
+              </Alert>
+            )}
+            {cadastroCompleto && (
+              <Alert className="mb-6 border-green-500/50 bg-green-500/10 text-green-800 dark:text-green-200">
+                <AlertDescription>
+                  <strong>Cadastro completo.</strong> Você pode acompanhar seus processos abaixo.
+                </AlertDescription>
+              </Alert>
+            )}
+            <Card>
+              <CardHeader>
+                <CardTitle>Meu cadastro</CardTitle>
+                <CardDescription>
+                  Preencha ou atualize seus dados: nome completo, CPF, e-mail e CNPJ (opcional). É necessário aceitar o termo de consentimento LGPD.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {cadastroLoading ? (
+                  <p className="text-muted-foreground">Carregando...</p>
+                ) : (
+                  <form onSubmit={handleCadastroSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="cadastro-nome">Nome completo</Label>
+                      <Input
+                        id="cadastro-nome"
+                        value={cadastroNome}
+                        onChange={(e) => setCadastroNome(e.target.value)}
+                        placeholder="Seu nome completo"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cadastro-cpf">CPF</Label>
+                      <Input
+                        id="cadastro-cpf"
+                        value={cadastroCpf}
+                        onChange={(e) => setCadastroCpf(formatCpfInput(e.target.value))}
+                        placeholder="000.000.000-00"
+                        maxLength={14}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cadastro-email">E-mail</Label>
+                      <Input
+                        id="cadastro-email"
+                        type="email"
+                        value={cadastroEmail}
+                        onChange={(e) => setCadastroEmail(e.target.value)}
+                        placeholder="seu@email.com"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cadastro-cnpj">CNPJ (opcional)</Label>
+                      <Input
+                        id="cadastro-cnpj"
+                        value={cadastroCnpj}
+                        onChange={(e) => setCadastroCnpj(formatCnpjInput(e.target.value))}
+                        placeholder="00.000.000/0000-00"
+                        maxLength={18}
+                      />
+                    </div>
+                    <div className="flex items-start gap-3 rounded-lg border p-4">
+                      <Checkbox
+                        id="cadastro-lgpd"
+                        checked={cadastroLgpdConsent}
+                        onCheckedChange={(v) => setCadastroLgpdConsent(v === true)}
+                      />
+                      <div className="space-y-1 leading-none">
+                        <Label
+                          htmlFor="cadastro-lgpd"
+                          className="cursor-pointer text-sm font-medium"
+                        >
+                          Consentimento LGPD
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Declaro que li e concordo com a{" "}
+                          <Link href="/privacidade" className="text-primary underline underline-offset-2 hover:no-underline" target="_blank" rel="noopener noreferrer">
+                            política de privacidade
+                          </Link>{" "}
+                          e o tratamento dos meus dados pessoais conforme a Lei Geral de Proteção de Dados (LGPD – Lei 13.709/2018), para fins de acompanhamento do meu processo.
+                        </p>
+                      </div>
+                    </div>
+                    {cadastroError && (
+                      <Alert variant="destructive">
+                        <AlertDescription>{cadastroError}</AlertDescription>
+                      </Alert>
+                    )}
+                    {cadastroSuccess && (
+                      <Alert className="border-green-500/50 bg-green-500/10 text-green-800 dark:text-green-200">
+                        <AlertDescription><strong>Cadastro completo!</strong> Seus dados foram salvos.</AlertDescription>
+                      </Alert>
+                    )}
+                    <Button type="submit" disabled={cadastroSaving}>
+                      {cadastroSaving ? "Salvando..." : "Salvar cadastro"}
+                    </Button>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
+
+      {/* Processos: só exibe quando cadastro completo (Neon) ou sempre (Boxify) */}
       <section className="flex-1 px-4 py-8">
-        <div className="container mx-auto max-w-2xl">
-          {loadingLead && (
+        <div className="container mx-auto max-w-2xl space-y-6">
+          {sessionUsername && !cadastroCompleto && (
+            <Alert>
+              <AlertDescription>Complete o cadastro acima para ver seus processos.</AlertDescription>
+            </Alert>
+          )}
+          {(!sessionUsername || cadastroCompleto) && loadingLead && (
             <div className="flex justify-center py-12">
               <p className="text-muted-foreground">Carregando seus dados...</p>
             </div>
           )}
-          {!loadingLead && !leadData && (
+          {(!sessionUsername || cadastroCompleto) && !loadingLead && leadsData === null && (
             <Alert>
               <AlertDescription>Não foi possível carregar os dados do seu cadastro. Faça logout e entre novamente.</AlertDescription>
             </Alert>
           )}
-          {!loadingLead && leadData && (
-            <Card className="overflow-hidden">
-              <CardHeader className="bg-muted/50">
-                <CardTitle className="text-xl">Seu cadastro</CardTitle>
-                <CardDescription>Dados do seu cadastro na base</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <dl className="space-y-4">
-                  {leadData.name != null && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Nome</dt>
-                      <dd className="mt-1 text-base font-medium">{String(leadData.name)}</dd>
-                    </div>
-                  )}
-                  {leadData.email != null && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">E-mail</dt>
-                      <dd className="mt-1 text-base">{String(leadData.email)}</dd>
-                    </div>
-                  )}
-                  {leadData.phone != null && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Telefone</dt>
-                      <dd className="mt-1 text-base">{String(leadData.phone)}</dd>
-                    </div>
-                  )}
-                  {leadData.document != null && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">CPF/CNPJ</dt>
-                      <dd className="mt-1 text-base">{String(leadData.document)}</dd>
-                    </div>
-                  )}
-                  {leadData.status != null && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Status</dt>
-                      <dd className="mt-1">
-                        <Badge variant="secondary">{String(leadData.status)}</Badge>
-                      </dd>
-                    </div>
-                  )}
-                  {leadData.value != null && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Valor</dt>
-                      <dd className="mt-1 text-base">{Number(leadData.value)}</dd>
-                    </div>
-                  )}
-                  {leadData.score != null && (
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Score</dt>
-                      <dd className="mt-1 text-base">{Number(leadData.score)}</dd>
-                    </div>
-                  )}
-                  {leadData.custom_fields && typeof leadData.custom_fields === "object" && !Array.isArray(leadData.custom_fields) && (
-                    <div className="border-t pt-4 mt-4">
-                      <dt className="text-sm font-medium text-muted-foreground mb-2">Campos personalizados</dt>
-                      <dd className="mt-1 space-y-2">
-                        {Object.entries(leadData.custom_fields as Record<string, unknown>).map(([key, value]) => {
-                          const label =
-                            key === "datadenascimento"
-                              ? "Data de nascimento"
-                              : key === "datadaatualizacao"
-                                ? "Data da atualização"
-                                : key === "datadalista"
-                                  ? "Data da lista"
-                                  : key === "datadeconclusao"
-                                    ? "Data de conclusão"
-                                    : key === "statusdoprocesso"
-                                      ? "Status do processo"
-                                      : key === "observacoes"
-                                        ? "Observações"
-                                        : key === "responsavel"
-                                          ? "Responsável"
-                                          : key === "tipodeprocesso"
-                                            ? "Tipo de processo"
-                                            : key
-                          return (
-                          <div key={key} className="flex flex-wrap gap-x-2 text-sm">
-                            <span className="font-medium text-muted-foreground">{label}:</span>
-                            <span>
-                              {Array.isArray(value)
-                                ? value.join(", ")
-                                : typeof value === "object" && value !== null
-                                  ? JSON.stringify(value)
-                                  : String(value)}
-                            </span>
-                          </div>
-                          )
-                        })}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </CardContent>
-            </Card>
+          {(!sessionUsername || cadastroCompleto) && !loadingLead && leadsData?.length === 0 && (
+            <Alert>
+              <AlertDescription>Nenhum processo encontrado para seu cadastro.</AlertDescription>
+            </Alert>
+          )}
+          {!loadingLead && leadsData && leadsData.length > 0 && (
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold">Seus processos</h2>
+              {leadsData.map((lead, index) => {
+                const customFields = lead.custom_fields
+                const tipoProcesso = customFields && typeof customFields === "object" && !Array.isArray(customFields)
+                  ? (customFields as Record<string, unknown>).tipodeprocesso
+                  : null
+                const statusProcesso = customFields && typeof customFields === "object" && !Array.isArray(customFields)
+                  ? (customFields as Record<string, unknown>).statusdoprocesso
+                  : null
+                const cardTitle = [String(tipoProcesso || "").trim(), String(statusProcesso || "").trim()].filter(Boolean).join(" — ") || `Processo ${index + 1}`
+                const leadId = String(lead.id ?? index)
+                const isExpanded = expandedProcessoId === leadId
+
+                return (
+                  <Card key={leadId} className="overflow-hidden">
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition-colors hover:bg-muted/50"
+                      onClick={() => setExpandedProcessoId((id) => (id === leadId ? null : leadId))}
+                    >
+                      <span className="flex items-center gap-2">
+                        {isExpanded ? (
+                          <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+                        )}
+                        <span className="font-medium">{cardTitle}</span>
+                      </span>
+                      <Badge variant="secondary" className="shrink-0">
+                        {isExpanded ? "Ocultar detalhes" : "Ver detalhes"}
+                      </Badge>
+                    </button>
+                    {isExpanded && (
+                      <CardContent className="border-t bg-muted/20 pt-4">
+                        <dl className="space-y-4">
+                          {Object.entries(lead).map(([key, value]) => {
+                            if (value === undefined) return null
+                            const label =
+                              key === "name" ? "Nome"
+                              : key === "email" ? "E-mail"
+                              : key === "phone" ? "Telefone"
+                              : key === "document" || key === "document_number" || key === "doc" ? "CPF/CNPJ"
+                              : key === "status" ? "Status"
+                              : key === "value" ? "Valor"
+                              : key === "score" ? "Score"
+                              : key === "custom_fields" ? "Dados do processo"
+                              : key === "id" ? "ID"
+                              : key === "created_at" ? "Criado em"
+                              : key === "updated_at" ? "Atualizado em"
+                              : key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+                            let display: React.ReactNode
+                            if (key === "status" && value != null) {
+                              display = <Badge variant="secondary">{String(value)}</Badge>
+                            } else if (key === "custom_fields" && typeof value === "object" && value !== null && !Array.isArray(value)) {
+                              display = (
+                                <div className="mt-2 space-y-2 rounded-md border bg-muted/30 p-3">
+                                  {Object.entries(value as Record<string, unknown>).map(([k, v]) => (
+                                    <div key={k} className="flex flex-wrap gap-x-2 text-sm">
+                                      <span className="font-medium text-muted-foreground">
+                                        {k === "datadenascimento" ? "Data de nascimento" : k === "datadaatualizacao" ? "Data da atualização" : k === "datadalista" ? "Data da lista" : k === "datadeconclusao" ? "Data de conclusão" : k === "statusdoprocesso" ? "Status do processo" : k === "observacoes" ? "Observações" : k === "responsavel" ? "Responsável" : k === "tipodeprocesso" ? "Tipo de processo" : k}:
+                                      </span>
+                                      <span>
+                                        {Array.isArray(v) ? v.join(", ") : typeof v === "object" && v !== null ? JSON.stringify(v) : String(v ?? "")}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )
+                            } else if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+                              display = <pre className="overflow-x-auto rounded bg-muted/50 p-2 text-xs">{JSON.stringify(value, null, 2)}</pre>
+                            } else if (Array.isArray(value)) {
+                              display = <pre className="overflow-x-auto rounded bg-muted/50 p-2 text-xs">{JSON.stringify(value, null, 2)}</pre>
+                            } else {
+                              display = <span className="text-base">{String(value)}</span>
+                            }
+                            return (
+                              <div key={key}>
+                                <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
+                                <dd className="mt-1">{display}</dd>
+                              </div>
+                            )
+                          })}
+                        </dl>
+                      </CardContent>
+                    )}
+                  </Card>
+                )
+              })}
+            </div>
           )}
         </div>
       </section>

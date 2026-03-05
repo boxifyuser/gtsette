@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import {
   createSessionPayload,
+  createSessionPayloadForUser,
   setSessionCookie,
-  getSession,
 } from "@/lib/session"
+import { getUserByUsername, verifyPassword } from "@/lib/auth-neon"
+import { normalizeEnv, getBoxifyBaseUrl, fetchBoxifyLeads } from "@/lib/boxify"
 
-const BOXIFY_API_V1 = "https://boxify.com.br/api/v1"
 const PIPELINE_ID = "9abf49fa-1b05-4be7-8ec5-76646e4df53d"
-
-function normalizeEnv(value: string | undefined): string {
-  if (value == null || typeof value !== "string") return ""
-  return value.replace(/\r\n|\r|\n/g, "").trim()
-}
 
 function normalizeDocument(value: string): string {
   return value.replace(/\D/g, "")
@@ -57,13 +53,6 @@ function birthDateToApiFormat(ddMmYyyy: string): string {
   const month = n.slice(2, 4)
   const year = n.slice(4, 8)
   return `${year}-${month}-${day}`
-}
-
-/** Retorna a URL base da API Boxify (env ou padrão) */
-function getBoxifyBaseUrl(): string {
-  const base = normalizeEnv(process.env.BOXIFY_API_BASE_URL)
-  if (base) return base.replace(/\/$/, "")
-  return BOXIFY_API_V1
 }
 
 function validCPF(doc: string): boolean {
@@ -127,19 +116,47 @@ function validBirthDate(value: string): boolean {
 
 /**
  * POST /api/auth/login
- * Body: { document: string (CPF ou CNPJ), birthDate: string (DD/MM/AAAA) }
- * Valida contra GET /api/v1/leads (Boxify) com pipeline_id fixo.
- * Lead: document, custom_fields.datadenascimento (YYYY-MM-DD).
+ * Body (Neon): { username: string, password: string }
+ * Body (Boxify): { document: string (CPF ou CNPJ), birthDate: string (DD/MM/AAAA) }
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const username = typeof body.username === "string" ? body.username.trim() : ""
+    const password = typeof body.password === "string" ? body.password : ""
+
+    if (username && password) {
+      const user = await getUserByUsername(username)
+      if (!user) {
+        return NextResponse.json(
+          { success: false, error: "Usuário ou senha incorretos." },
+          { status: 401 }
+        )
+      }
+      const valid = await verifyPassword(password, user.password_hash)
+      if (!valid) {
+        return NextResponse.json(
+          { success: false, error: "Usuário ou senha incorretos." },
+          { status: 401 }
+        )
+      }
+      const payload = createSessionPayloadForUser(user.id, user.username)
+      if (!payload) {
+        return NextResponse.json(
+          { success: false, error: "Erro ao criar sessão. Configure SESSION_SECRET no servidor." },
+          { status: 503 }
+        )
+      }
+      await setSessionCookie(payload)
+      return NextResponse.json({ success: true })
+    }
+
     const document = typeof body.document === "string" ? body.document.trim() : ""
     const birthDate = typeof body.birthDate === "string" ? body.birthDate.trim() : ""
 
     if (!document || !birthDate) {
       return NextResponse.json(
-        { success: false, error: "CPF/CNPJ e data de nascimento são obrigatórios." },
+        { success: false, error: "Envie usuário e senha ou CPF/CNPJ e data de nascimento." },
         { status: 400 }
       )
     }
@@ -169,21 +186,17 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl = getBoxifyBaseUrl()
-    const url = `${baseUrl}/leads?pipeline_id=${encodeURIComponent(PIPELINE_ID)}&limit=500`
-    const res = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-    })
+    const result = await fetchBoxifyLeads(baseUrl, token, PIPELINE_ID, 500)
 
-    if (!res.ok) {
+    if (!result.ok) {
       if (process.env.NODE_ENV === "development") {
-        console.warn("[auth/login] Boxify GET /leads falhou.", { status: res.status, statusText: res.statusText, url })
+        console.warn("[auth/login] Boxify listar leads falhou.", {
+          status: result.status,
+          statusText: result.statusText,
+          url: `${baseUrl}/leads`,
+        })
       }
-      if (res.status === 401 || res.status === 403) {
+      if (result.status === 401 || result.status === 403) {
         return NextResponse.json(
           { success: false, error: "Usuário não está cadastrado com esse CPF e Data de Nascimento. Favor falar no SAC: +55 31 98250-6478" },
           { status: 200 }
@@ -195,9 +208,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const data = await res.json()
-    const leads: Array<Record<string, unknown>> =
-      Array.isArray(data?.leads) ? data.leads : Array.isArray(data?.data?.leads) ? data.data.leads : []
+    const leads = result.leads
     const birthDateApi = birthDateToApiFormat(birthDate)
     const docNormalizedClean = docNormalized.replace(/^0+/, "") || docNormalized
     const match = leads.find((lead) => {

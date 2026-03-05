@@ -10,12 +10,19 @@ export async function GET() {
   if (!session) {
     return NextResponse.json({ session: null })
   }
-  const doc = session.document
+  if (session.userId && session.username) {
+    return NextResponse.json({
+      session: { userId: session.userId, username: session.username, type: "neon" },
+    })
+  }
+  const doc = session.document ?? ""
   const masked =
     doc.length === 11
       ? `${doc.slice(0, 3)}.***.***-${doc.slice(-2)}`
-      : `${doc.slice(0, 2)}.**.***/****-${doc.slice(-2)}`
+      : doc.length >= 14
+        ? `${doc.slice(0, 2)}.**.***/****-${doc.slice(-2)}`
+        : "***"
   return NextResponse.json({
-    session: { document: masked, birthDate: "**/**/****" },
+    session: { document: masked, birthDate: "**/**/****", type: "boxify" },
   })
 }
