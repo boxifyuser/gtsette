@@ -26,8 +26,38 @@ interface Processo {
   observacoes: string | null
   data_atualizacao: string | null
   data_conclusao: string | null
+  situacao_por_orgao: Record<string, string> | null
   created_at: string
   updated_at: string
+}
+
+const ORGAO_STATUS_OPCOES = [
+  "",
+  "Aguardando início das baixas",
+  "Em Andamento",
+  "100% baixado",
+] as const
+
+/** Converte qualquer valor de data para yyyy-MM-dd (exigido por input type="date"). */
+function toDateInputValue(value: string | null | undefined): string {
+  if (value == null || String(value).trim() === "") return ""
+  const s = String(value).trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10)
+  const d = new Date(s)
+  if (Number.isNaN(d.getTime())) return ""
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
+}
+
+/** Formata data para exibição simples (dd/MM/yyyy). */
+function formatDateDisplay(value: string | null | undefined): string {
+  if (value == null || String(value).trim() === "") return "—"
+  const s = String(value).trim()
+  const d = /^\d{4}-\d{2}-\d{2}/.test(s) ? new Date(s.slice(0, 10)) : new Date(s)
+  if (Number.isNaN(d.getTime())) return "—"
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })
 }
 
 interface UserInfo {
@@ -58,6 +88,8 @@ export default function AdminUsuarioDetailPage() {
   const [formObs, setFormObs] = useState("")
   const [formDataAtual, setFormDataAtual] = useState("")
   const [formDataConc, setFormDataConc] = useState("")
+  const [formSituacaoPorOrgao, setFormSituacaoPorOrgao] = useState<Record<string, string>>({})
+  const [orgaos, setOrgaos] = useState<{ id: string; nome: string; ordem: number; ativo: boolean }[]>([])
   const [bulkText, setBulkText] = useState("")
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
@@ -99,12 +131,20 @@ export default function AdminUsuarioDetailPage() {
     })
   }, [loadSession, loadUsersAndProcessos])
 
+  useEffect(() => {
+    fetch("/api/admin/orgaos")
+      .then((r) => r.json())
+      .then((data) => setOrgaos(Array.isArray(data?.orgaos) ? data.orgaos : []))
+      .catch(() => setOrgaos([]))
+  }, [])
+
   const resetForm = () => {
     setFormTipo("")
     setFormStatus("")
     setFormObs("")
     setFormDataAtual("")
     setFormDataConc("")
+    setFormSituacaoPorOrgao({})
     setEditingId(null)
     setShowNewForm(false)
   }
@@ -121,8 +161,9 @@ export default function AdminUsuarioDetailPage() {
           tipo_processo: formTipo || null,
           status_processo: formStatus || null,
           observacoes: formObs || null,
-          data_atualizacao: formDataAtual || null,
-          data_conclusao: formDataConc || null,
+          data_atualizacao: formDataAtual ? toDateInputValue(formDataAtual) || null : null,
+          data_conclusao: formDataConc ? toDateInputValue(formDataConc) || null : null,
+          situacao_por_orgao: Object.fromEntries(Object.entries(formSituacaoPorOrgao).filter(([, v]) => v != null && String(v).trim() !== "")),
         }),
       })
       const data = await res.json()
@@ -151,8 +192,9 @@ export default function AdminUsuarioDetailPage() {
           tipo_processo: formTipo || null,
           status_processo: formStatus || null,
           observacoes: formObs || null,
-          data_atualizacao: formDataAtual || null,
-          data_conclusao: formDataConc || null,
+          data_atualizacao: formDataAtual ? toDateInputValue(formDataAtual) || null : null,
+          data_conclusao: formDataConc ? toDateInputValue(formDataConc) || null : null,
+          situacao_por_orgao: Object.fromEntries(Object.entries(formSituacaoPorOrgao).filter(([, v]) => v != null && String(v).trim() !== "")),
         }),
       })
       const data = await res.json()
@@ -191,8 +233,9 @@ export default function AdminUsuarioDetailPage() {
     setFormTipo(p.tipo_processo || "")
     setFormStatus(p.status_processo || "")
     setFormObs(p.observacoes || "")
-    setFormDataAtual(p.data_atualizacao || "")
-    setFormDataConc(p.data_conclusao || "")
+    setFormDataAtual(toDateInputValue(p.data_atualizacao))
+    setFormDataConc(toDateInputValue(p.data_conclusao))
+    setFormSituacaoPorOrgao(p.situacao_por_orgao && typeof p.situacao_por_orgao === "object" ? { ...p.situacao_por_orgao } : {})
     setShowNewForm(false)
     setShowBulk(false)
   }
@@ -254,11 +297,16 @@ export default function AdminUsuarioDetailPage() {
       <header className="border-b bg-card px-4 py-4">
         <div className="container mx-auto flex max-w-6xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/admin/usuarios" className="flex items-center gap-1">
-                <ArrowLeft className="h-4 w-4" /> Voltar aos usuários
-              </Link>
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/admin/usuarios" className="flex items-center gap-1">
+                  <ArrowLeft className="h-4 w-4" /> Voltar aos usuários
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/admin/orgaos">Órgãos</Link>
+              </Button>
+            </div>
             <h1 className="mt-2 text-xl font-bold">Processos do usuário</h1>
             {user && (
               <p className="text-sm text-muted-foreground">
@@ -290,7 +338,21 @@ export default function AdminUsuarioDetailPage() {
           <Button
             variant={showNewForm ? "secondary" : "default"}
             size="sm"
-            onClick={() => { setShowNewForm(!showNewForm); setShowBulk(false); resetForm(); }}
+            onClick={() => {
+              if (showNewForm) {
+                resetForm()
+              } else {
+                setShowBulk(false)
+                setFormTipo("")
+                setFormStatus("")
+                setFormObs("")
+                setFormDataAtual("")
+                setFormDataConc("")
+                setFormSituacaoPorOrgao({})
+                setEditingId(null)
+                setShowNewForm(true)
+              }
+            }}
           >
             <Plus className="mr-2 h-4 w-4" /> Novo processo
           </Button>
@@ -331,6 +393,29 @@ export default function AdminUsuarioDetailPage() {
                   <Label>Data conclusão</Label>
                   <Input type="date" value={formDataConc} onChange={(e) => setFormDataConc(e.target.value)} />
                 </div>
+                {orgaos.length > 0 && (
+                  <div className="space-y-3 sm:col-span-2">
+                    <Label className="block">Situação por órgão</Label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {orgaos.map((orgao) => (
+                        <div key={orgao.id} className="flex flex-col gap-1">
+                          <Label className="text-xs font-normal text-muted-foreground">{orgao.nome}</Label>
+                          <select
+                            className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            value={formSituacaoPorOrgao[orgao.nome] ?? ""}
+                            onChange={(e) => setFormSituacaoPorOrgao((prev) => ({ ...prev, [orgao.nome]: e.target.value }))}
+                          >
+                            {ORGAO_STATUS_OPCOES.map((opt) => (
+                              <option key={opt || "_"} value={opt}>
+                                {opt || "—"}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="flex gap-2 sm:col-span-2">
                   <Button type="submit" disabled={saving}>
                     {saving ? "Salvando..." : editingId ? "Atualizar" : "Criar"}
@@ -375,39 +460,47 @@ export default function AdminUsuarioDetailPage() {
             {processos.length === 0 ? (
               <p className="py-8 text-center text-muted-foreground">Nenhum processo cadastrado.</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Observações</TableHead>
-                    <TableHead>Data atualização</TableHead>
-                    <TableHead>Data conclusão</TableHead>
-                    <TableHead className="w-[100px]">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {processos.map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell>{p.tipo_processo || "—"}</TableCell>
-                      <TableCell>{p.status_processo || "—"}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{p.observacoes || "—"}</TableCell>
-                      <TableCell>{p.data_atualizacao || "—"}</TableCell>
-                      <TableCell>{p.data_conclusao || "—"}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => startEdit(p)} aria-label="Editar">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)} aria-label="Excluir">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-b bg-muted/40 hover:bg-muted/40">
+                      <TableHead className="font-semibold">Tipo</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="max-w-[180px] font-semibold">Observações</TableHead>
+                      <TableHead className="whitespace-nowrap font-semibold">Atualização</TableHead>
+                      <TableHead className="whitespace-nowrap font-semibold">Conclusão</TableHead>
+                      <TableHead className="w-[90px] font-semibold">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {processos.map((p) => (
+                      <TableRow key={p.id} className="group">
+                        <TableCell className="font-medium">{p.tipo_processo || "—"}</TableCell>
+                        <TableCell>{p.status_processo || "—"}</TableCell>
+                        <TableCell className="max-w-[180px] truncate text-muted-foreground" title={p.observacoes || undefined}>
+                          {p.observacoes || "—"}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-sm text-muted-foreground tabular-nums">
+                          {formatDateDisplay(p.data_atualizacao)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-sm text-muted-foreground tabular-nums">
+                          {formatDateDisplay(p.data_conclusao)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-0.5">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(p)} aria-label="Editar">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(p.id)} aria-label="Excluir">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

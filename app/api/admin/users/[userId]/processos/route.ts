@@ -47,6 +47,7 @@ export async function POST(
     observacoes: body.observacoes,
     data_atualizacao: body.data_atualizacao,
     data_conclusao: body.data_conclusao,
+    situacao_por_orgao: body.situacao_por_orgao,
   })
   if ("error" in result) return NextResponse.json({ success: false, error: result.error }, { status: 400 })
   return NextResponse.json({ success: true, id: result.id })

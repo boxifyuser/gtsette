@@ -8,6 +8,7 @@ export interface ProcessoRow {
   observacoes: string | null
   data_atualizacao: string | null
   data_conclusao: string | null
+  situacao_por_orgao: Record<string, string> | null
   created_at: Date
   updated_at: Date
 }
@@ -18,6 +19,17 @@ export interface ProcessoInput {
   observacoes?: string | null
   data_atualizacao?: string | null
   data_conclusao?: string | null
+  situacao_por_orgao?: Record<string, string> | null
+}
+
+function parseSituacaoPorOrgao(v: unknown): Record<string, string> | null {
+  if (v == null) return null
+  if (typeof v !== "object" || Array.isArray(v)) return null
+  const out: Record<string, string> = {}
+  for (const [k, val] of Object.entries(v)) {
+    if (typeof k === "string" && typeof val === "string") out[k] = val
+  }
+  return Object.keys(out).length ? out : null
 }
 
 function rowToProcesso(r: Record<string, unknown>): ProcessoRow {
@@ -29,6 +41,7 @@ function rowToProcesso(r: Record<string, unknown>): ProcessoRow {
     observacoes: r.observacoes != null ? String(r.observacoes) : null,
     data_atualizacao: r.data_atualizacao != null ? String(r.data_atualizacao) : null,
     data_conclusao: r.data_conclusao != null ? String(r.data_conclusao) : null,
+    situacao_por_orgao: parseSituacaoPorOrgao(r.situacao_por_orgao),
     created_at: r.created_at instanceof Date ? r.created_at : new Date(String(r.created_at)),
     updated_at: r.updated_at instanceof Date ? r.updated_at : new Date(String(r.updated_at)),
   }
@@ -39,7 +52,7 @@ export async function getProcessosByUserId(userId: string): Promise<ProcessoRow[
   const ok = await ensureProcessosTable()
   if (!ok) return []
   const rows = await sql`
-    SELECT id, user_id, tipo_processo, status_processo, observacoes, data_atualizacao, data_conclusao, created_at, updated_at
+    SELECT id, user_id, tipo_processo, status_processo, observacoes, data_atualizacao, data_conclusao, situacao_por_orgao, created_at, updated_at
     FROM user_processos
     WHERE user_id = ${userId}
     ORDER BY updated_at DESC
@@ -50,7 +63,7 @@ export async function getProcessosByUserId(userId: string): Promise<ProcessoRow[
 export async function getProcessoById(id: string): Promise<ProcessoRow | null> {
   if (!sql) return null
   const rows = await sql`
-    SELECT id, user_id, tipo_processo, status_processo, observacoes, data_atualizacao, data_conclusao, created_at, updated_at
+    SELECT id, user_id, tipo_processo, status_processo, observacoes, data_atualizacao, data_conclusao, situacao_por_orgao, created_at, updated_at
     FROM user_processos
     WHERE id = ${id}
     LIMIT 1
@@ -68,10 +81,11 @@ export async function createProcesso(userId: string, data: ProcessoInput): Promi
   const obs = data.observacoes?.trim() || null
   const dataAtual = data.data_atualizacao?.trim() || null
   const dataConc = data.data_conclusao?.trim() || null
+  const situacao = data.situacao_por_orgao && Object.keys(data.situacao_por_orgao).length > 0 ? JSON.stringify(data.situacao_por_orgao) : "{}"
   try {
     const rows = await sql`
-      INSERT INTO user_processos (user_id, tipo_processo, status_processo, observacoes, data_atualizacao, data_conclusao, updated_at)
-      VALUES (${userId}, ${tipo}, ${status}, ${obs}, ${dataAtual || null}, ${dataConc || null}, now())
+      INSERT INTO user_processos (user_id, tipo_processo, status_processo, observacoes, data_atualizacao, data_conclusao, situacao_por_orgao, updated_at)
+      VALUES (${userId}, ${tipo}, ${status}, ${obs}, ${dataAtual || null}, ${dataConc || null}, ${situacao}::jsonb, now())
       RETURNING id
     `
     const row = rows[0] as Record<string, unknown>
@@ -91,6 +105,9 @@ export async function updateProcesso(id: string, data: ProcessoInput): Promise<{
   const obs = data.observacoes !== undefined ? (data.observacoes?.trim() || null) : current.observacoes
   const dataAtual = data.data_atualizacao !== undefined ? (data.data_atualizacao?.trim() || null) : current.data_atualizacao
   const dataConc = data.data_conclusao !== undefined ? (data.data_conclusao?.trim() || null) : current.data_conclusao
+  const situacao = data.situacao_por_orgao !== undefined
+    ? (data.situacao_por_orgao && Object.keys(data.situacao_por_orgao).length > 0 ? JSON.stringify(data.situacao_por_orgao) : "{}")
+    : (current.situacao_por_orgao && Object.keys(current.situacao_por_orgao).length > 0 ? JSON.stringify(current.situacao_por_orgao) : "{}")
   try {
     await sql`
       UPDATE user_processos SET
@@ -99,6 +116,7 @@ export async function updateProcesso(id: string, data: ProcessoInput): Promise<{
         observacoes = ${obs},
         data_atualizacao = ${dataAtual},
         data_conclusao = ${dataConc},
+        situacao_por_orgao = ${situacao}::jsonb,
         updated_at = now()
       WHERE id = ${id}
     `

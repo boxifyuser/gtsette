@@ -111,10 +111,36 @@ export async function ensureProcessosTable(): Promise<boolean> {
       )
     `
     await sql`CREATE INDEX IF NOT EXISTS idx_user_processos_user_id ON user_processos(user_id)`
+    await sql`ALTER TABLE user_processos ADD COLUMN IF NOT EXISTS situacao_por_orgao jsonb DEFAULT '{}'`
     processosTableChecked = true
     return true
   } catch (e) {
     console.error("[db] ensureProcessosTable:", e)
+    return false
+  }
+}
+
+let processoOrgaosTableChecked = false
+
+/** Órgãos para "Situação por órgão" (Serasa, SPC, etc.). Admin pode adicionar e ativar/desativar. */
+export async function ensureProcessoOrgaosTable(): Promise<boolean> {
+  if (!sql) return false
+  if (processoOrgaosTableChecked) return true
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS processo_orgaos (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        nome text NOT NULL UNIQUE,
+        ordem int NOT NULL DEFAULT 0,
+        ativo boolean NOT NULL DEFAULT true,
+        created_at timestamptz NOT NULL DEFAULT now()
+      )
+    `
+    await sql`CREATE INDEX IF NOT EXISTS idx_processo_orgaos_ativo ON processo_orgaos(ativo)`
+    processoOrgaosTableChecked = true
+    return true
+  } catch (e) {
+    console.error("[db] ensureProcessoOrgaosTable:", e)
     return false
   }
 }

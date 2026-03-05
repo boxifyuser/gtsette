@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminSession } from "@/lib/session-admin"
-import { getProcessoById, updateProcesso, deleteProcesso } from "@/lib/admin-processos"
+import { updateOrgao, deleteOrgao } from "@/lib/admin-orgaos"
 
 export async function PATCH(
   request: NextRequest,
@@ -10,14 +10,11 @@ export async function PATCH(
   if (!session) return NextResponse.json({ error: "Não autorizado." }, { status: 401 })
   const { id } = await params
   if (!id) return NextResponse.json({ error: "id obrigatório." }, { status: 400 })
-  const body = await request.json()
-  const result = await updateProcesso(id, {
-    tipo_processo: body.tipo_processo,
-    status_processo: body.status_processo,
-    observacoes: body.observacoes,
-    data_atualizacao: body.data_atualizacao,
-    data_conclusao: body.data_conclusao,
-    situacao_por_orgao: body.situacao_por_orgao,
+  const body = await request.json().catch(() => ({}))
+  const result = await updateOrgao(id, {
+    nome: body.nome,
+    ordem: body.ordem,
+    ativo: body.ativo,
   })
   if (result.error) return NextResponse.json({ success: false, error: result.error }, { status: 400 })
   return NextResponse.json({ success: true })
@@ -31,9 +28,7 @@ export async function DELETE(
   if (!session) return NextResponse.json({ error: "Não autorizado." }, { status: 401 })
   const { id } = await params
   if (!id) return NextResponse.json({ error: "id obrigatório." }, { status: 400 })
-  const existing = await getProcessoById(id)
-  if (!existing) return NextResponse.json({ error: "Processo não encontrado." }, { status: 404 })
-  const result = await deleteProcesso(id)
+  const result = await deleteOrgao(id)
   if (result.error) return NextResponse.json({ success: false, error: result.error }, { status: 400 })
   return NextResponse.json({ success: true })
 }

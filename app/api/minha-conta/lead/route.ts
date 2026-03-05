@@ -23,7 +23,7 @@ function getLeadDocument(lead: Record<string, unknown>): string | null {
 }
 
 /** Converte processo (user_processos) para formato lead-like para exibição na página. */
-function processoToLeadLike(p: { id: string; tipo_processo: string | null; status_processo: string | null; observacoes: string | null; data_atualizacao: string | null; data_conclusao: string | null; created_at: Date; updated_at: Date }): Record<string, unknown> {
+function processoToLeadLike(p: { id: string; tipo_processo: string | null; status_processo: string | null; observacoes: string | null; data_atualizacao: string | null; data_conclusao: string | null; situacao_por_orgao: Record<string, string> | null; created_at: Date; updated_at: Date }): Record<string, unknown> {
   return {
     id: p.id,
     custom_fields: {
@@ -33,6 +33,7 @@ function processoToLeadLike(p: { id: string; tipo_processo: string | null; statu
       datadaatualizacao: p.data_atualizacao,
       datadeconclusao: p.data_conclusao,
     },
+    situacao_por_orgao: p.situacao_por_orgao ?? {},
     created_at: p.created_at,
     updated_at: p.updated_at,
   }
