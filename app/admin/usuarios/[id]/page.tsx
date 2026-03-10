@@ -42,6 +42,13 @@ const ORGAO_STATUS_OPCOES = [
 /** Tipos fixos para o campo "Tipo do processo" em admin/usuários */
 const TIPO_PROCESSO_OPCOES = ["Limpeza de CPF", "Limpeza de CNPJ"] as const
 
+/** Status fixos para o campo "Status do processo" (alinhado à situação por órgão) */
+const STATUS_PROCESSO_OPCOES = [
+  "Aguardando início das baixas",
+  "Em Andamento",
+  "100% baixado",
+] as const
+
 /** Converte qualquer valor de data para yyyy-MM-dd (exigido por input type="date"). */
 function toDateInputValue(value: string | null | undefined): string {
   if (value == null || String(value).trim() === "") return ""
@@ -138,7 +145,11 @@ export default function AdminUsuarioDetailPage() {
   useEffect(() => {
     fetch("/api/admin/orgaos")
       .then((r) => r.json())
-      .then((data) => setOrgaos(Array.isArray(data?.orgaos) ? data.orgaos : []))
+      .then((data) => {
+        const list = Array.isArray(data?.orgaos) ? data.orgaos : []
+        // "Outros" retirado da situação por órgão
+        setOrgaos(list.filter((o: { nome: string }) => o.nome?.trim() !== "Outros"))
+      })
       .catch(() => setOrgaos([]))
   }, [])
 
@@ -411,7 +422,22 @@ export default function AdminUsuarioDetailPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Status do processo</Label>
-                  <Input value={formStatus} onChange={(e) => setFormStatus(e.target.value)} placeholder="Ex: Em andamento" />
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    value={formStatus}
+                    onChange={(e) => setFormStatus(e.target.value)}
+                  >
+                    <option value="">Selecione o status</option>
+                    {STATUS_PROCESSO_OPCOES.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                    {formStatus &&
+                      !(STATUS_PROCESSO_OPCOES as readonly string[]).includes(formStatus) && (
+                        <option value={formStatus}>{formStatus} (valor atual)</option>
+                      )}
+                  </select>
                 </div>
                 <div className="space-y-2 sm:col-span-2">
                   <Label>Observações</Label>
@@ -466,7 +492,7 @@ export default function AdminUsuarioDetailPage() {
             <CardHeader>
               <CardTitle>Subir em massa</CardTitle>
               <CardDescription>
-                Uma linha por processo. Colunas separadas por ponto-e-vírgula: tipo;status;observações;data_atualizacao(YYYY-MM-DD);data_conclusao(YYYY-MM-DD). Tipo recomendado: Limpeza de CPF ou Limpeza de CNPJ.
+                Uma linha por processo. Colunas separadas por ponto-e-vírgula: tipo;status;observações;data_atualizacao(YYYY-MM-DD);data_conclusao(YYYY-MM-DD). Tipo: Limpeza de CPF ou Limpeza de CNPJ. Status: Aguardando início das baixas, Em Andamento ou 100% baixado.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -475,7 +501,7 @@ export default function AdminUsuarioDetailPage() {
                   className="mb-4 min-h-[120px] w-full rounded-md border bg-background px-3 py-2 text-sm"
                   value={bulkText}
                   onChange={(e) => setBulkText(e.target.value)}
-                  placeholder="Limpeza de CPF;Em andamento;Aguardando documentação;2025-03-01;;&#10;Limpeza de CNPJ;Baixado;Finalizado;2025-03-05;2025-03-05"
+                  placeholder="Limpeza de CPF;Em Andamento;Aguardando documentação;2025-03-01;;&#10;Limpeza de CNPJ;100% baixado;Finalizado;2025-03-05;2025-03-05"
                 />
                 <Button type="submit" disabled={saving}>{saving ? "Enviando..." : "Importar"}</Button>
               </form>

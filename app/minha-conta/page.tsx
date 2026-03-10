@@ -67,7 +67,10 @@ export default function MinhaContaPage() {
     if (!isLoggedIn) return
     fetch("/api/orgaos")
       .then((r) => r.json())
-      .then((data) => setOrgaos(Array.isArray(data?.orgaos) ? data.orgaos : []))
+      .then((data) => {
+        const list = Array.isArray(data?.orgaos) ? data.orgaos : []
+        setOrgaos(list.filter((o: { nome: string }) => o.nome?.trim() !== "Outros"))
+      })
       .catch(() => setOrgaos([]))
   }, [isLoggedIn])
 

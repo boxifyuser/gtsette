@@ -20,7 +20,6 @@ const DEFAULT_ORGAOS = [
   "Boa Vista",
   "Cenprot SP",
   "CENPROT Nacional",
-  "Outros",
 ]
 
 function rowToOrgao(r: Record<string, unknown>): OrgaoRow {

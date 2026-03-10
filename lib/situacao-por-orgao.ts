@@ -16,7 +16,7 @@ function isInvalidSituacaoValue(v: string): boolean {
 }
 
 /**
- * Remove entradas inválidas (ex. "admin/usuários" no órgão Outros).
+ * Remove entradas inválidas (ex. "admin/usuários") e a chave "Outros" (órgão descontinuado).
  * Retorna novo objeto sem mutar o original.
  */
 export function sanitizeSituacaoPorOrgao(
@@ -25,6 +25,8 @@ export function sanitizeSituacaoPorOrgao(
   if (!obj || typeof obj !== "object") return {}
   const out: Record<string, string> = {}
   for (const [k, v] of Object.entries(obj)) {
+    // Órgão "Outros" removido do fluxo; não persistir nem reexibir
+    if (k.trim() === "Outros") continue
     if (v == null) continue
     const str = String(v).trim()
     if (str === "" || isInvalidSituacaoValue(str)) continue
