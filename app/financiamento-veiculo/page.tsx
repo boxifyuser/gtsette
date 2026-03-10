@@ -12,7 +12,9 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
-const WHATSAPP_URL = "https://wa.me/5531982506478"
+const WHATSAPP_URL = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
+  ? `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER.replace(/\D/g, "")}`
+  : ""
 const WHATSAPP_MSG_VEICULO =
   "Olá! Quero financiar um carro e preciso organizar meu nome. Pode me ajudar?"
 
@@ -101,7 +103,7 @@ export default function FinanciamentoVeiculoPage() {
               className="h-14 bg-primary px-8 text-base font-semibold text-white shadow-lg hover:bg-primary-hover"
             >
               <a
-                href={`${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_VEICULO)}`}
+                href={WHATSAPP_URL ? `${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_VEICULO)}` : "#"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2"
@@ -199,7 +201,7 @@ export default function FinanciamentoVeiculoPage() {
             className="mt-10 h-14 bg-primary px-8 text-base font-semibold text-white hover:bg-primary-hover"
           >
             <a
-              href={`${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_VEICULO)}`}
+              href={WHATSAPP_URL ? `${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_VEICULO)}` : "#"}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2"
@@ -237,7 +239,7 @@ export default function FinanciamentoVeiculoPage() {
               className="h-12 bg-white text-primary hover:bg-white/90"
             >
               <a
-                href={`${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_VEICULO)}`}
+                href={WHATSAPP_URL ? `${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_VEICULO)}` : "#"}
                 target="_blank"
                 rel="noopener noreferrer"
               >

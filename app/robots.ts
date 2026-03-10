@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -11,6 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/", "/minha-conta"],
       },
     ],
-    sitemap: `${siteUrl}/sitemap.xml`,
+    ...(siteUrl && { sitemap: `${siteUrl}/sitemap.xml` }),
   }
 }

@@ -13,7 +13,9 @@ import {
 import Link from "next/link"
 import { HeroFormImovel } from "@/components/forms/hero-form-imovel"
 
-const WHATSAPP_URL = "https://wa.me/5531982506478"
+const WHATSAPP_URL = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER
+  ? `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER.replace(/\D/g, "")}`
+  : ""
 const WHATSAPP_MSG_IMOVEL =
   "Olá! Quero aumentar minhas chances de aprovação no financiamento imobiliário."
 
@@ -107,7 +109,7 @@ export default function FinanciamentoImovelPage() {
                   className="h-11 bg-primary px-5 text-sm font-semibold text-white shadow-lg hover:bg-primary-hover sm:h-12 sm:px-6 sm:text-base lg:h-14 lg:px-8"
                 >
                   <a
-                    href={`${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_IMOVEL)}`}
+                    href={WHATSAPP_URL ? `${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_IMOVEL)}` : "#"}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2"
@@ -212,7 +214,7 @@ export default function FinanciamentoImovelPage() {
             className="mt-10 h-14 bg-primary px-8 text-base font-semibold text-white hover:bg-primary-hover"
           >
             <a
-              href={`${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_IMOVEL)}`}
+              href={WHATSAPP_URL ? `${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_IMOVEL)}` : "#"}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2"
@@ -241,7 +243,7 @@ export default function FinanciamentoImovelPage() {
               className="h-12 bg-white text-primary hover:bg-white/90"
             >
               <a
-                href={`${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_IMOVEL)}`}
+                href={WHATSAPP_URL ? `${WHATSAPP_URL}?text=${encodeURIComponent(WHATSAPP_MSG_IMOVEL)}` : "#"}
                 target="_blank"
                 rel="noopener noreferrer"
               >

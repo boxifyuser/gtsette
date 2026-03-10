@@ -53,9 +53,6 @@ export function Header() {
           >
             <Link href="/minha-conta">Minha Conta</Link>
           </Button>
-          <Button asChild className="bg-primary text-white hover:bg-primary-hover">
-            <Link href="/consulta">Consultar meu CPF</Link>
-          </Button>
         </div>
 
         {/* Mobile Menu Button */}
@@ -89,11 +86,6 @@ export function Header() {
             >
               <Link href="/minha-conta" onClick={() => setMobileMenuOpen(false)}>
                 Minha Conta
-              </Link>
-            </Button>
-            <Button asChild className="mt-2 w-full bg-primary text-white hover:bg-primary-hover">
-              <Link href="/consulta" onClick={() => setMobileMenuOpen(false)}>
-                Consultar meu CPF
               </Link>
             </Button>
           </div>

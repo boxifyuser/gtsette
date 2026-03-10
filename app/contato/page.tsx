@@ -209,7 +209,7 @@ export default function ContatoPage() {
           </p>
           <Button asChild size="lg" className="bg-[#25D366] text-white hover:bg-[#20BA5A]">
             <a
-              href="https://wa.me/5531982506478"
+              href={process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ? `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER.replace(/\D/g, "")}` : "#"}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center"

@@ -2,8 +2,14 @@
 
 import { useState } from "react"
 
-const BOXIFY_ORIGIN = "https://boxify.com.br"
-const AGENT_ID = "6f4f714e-0e24-4fe5-93ba-91da206276c6"
+/**
+ * Origem do embed e agentId precisam ser públicos (NEXT_PUBLIC_*) para o cliente.
+ * Se não definidos, usamos os valores padrão do Boxify da GTSETTE para o botão não sumir.
+ */
+const BOXIFY_ORIGIN =
+  process.env.NEXT_PUBLIC_BOXIFY_EMBED_ORIGIN?.replace(/\/$/, "") || "https://boxify.com.br"
+const AGENT_ID =
+  process.env.NEXT_PUBLIC_BOXIFY_AGENT_ID || "6f4f714e-0e24-4fe5-93ba-91da206276c6"
 
 const CHAT_CONFIG = {
   primaryColor: "16a34a",

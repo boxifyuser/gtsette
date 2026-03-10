@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BarChart3, Building2, FileText, HandshakeIcon, LineChart, ShieldCheck, UserCheck } from "lucide-react"
 import Link from "next/link"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
   title: "Serviços - Limpa Nome, Retirada de Dívidas (Lei 8078) e Recuperação de Crédito",

@@ -19,10 +19,18 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Corpo inválido." }, { status: 400 })
   }
-  if (!Array.isArray(body) || body.length === 0) {
-    return NextResponse.json({ error: "Envie um array de leads (nome_completo, cpf, email, cnpj)." }, { status: 400 })
+  const rawRows: unknown[] = Array.isArray(body)
+    ? body
+    : body && typeof body === "object"
+      ? [body]
+      : []
+  if (rawRows.length === 0) {
+    return NextResponse.json(
+      { error: "Envie um lead ou array de leads (nome_completo, cpf, email, cnpj opcional)." },
+      { status: 400 }
+    )
   }
-  const rows: LeadRow[] = body.map((r: unknown) => {
+  const rows: LeadRow[] = rawRows.map((r: unknown) => {
     const o = r as Record<string, unknown>
     return {
       nome_completo: String(o?.nome_completo ?? ""),
@@ -38,7 +46,10 @@ export async function POST(request: NextRequest) {
     }
   })
   const result = await bulkCreateLeads(rows)
-  return NextResponse.json({ created: result.created, errors: result.errors })
+  if (rawRows.length === 1 && result.created === 1) {
+    return NextResponse.json({ success: true, created: 1, errors: [] })
+  }
+  return NextResponse.json({ success: result.errors.length === 0, created: result.created, errors: result.errors })
 }
 
 export async function DELETE(request: NextRequest) {

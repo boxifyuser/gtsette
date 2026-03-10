@@ -19,7 +19,15 @@ import {
 } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 import { Checkbox } from "@/components/ui/checkbox"
-import { LogOut, User, ArrowRight, Search, Upload, Download, FileSpreadsheet, Trash2 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { LogOut, User, ArrowRight, Search, Upload, Download, FileSpreadsheet, Trash2, UserPlus } from "lucide-react"
 
 const PER_PAGE_OPTS = [10, 25, 50, 100] as const
 const DEFAULT_PER_PAGE = 50
@@ -158,6 +166,13 @@ export default function AdminUsuariosPage() {
   const [bulkSaving, setBulkSaving] = useState(false)
   const [bulkProgress, setBulkProgress] = useState(0)
   const [bulkResult, setBulkResult] = useState<{ created: number; errors: { line: number; error: string }[] } | null>(null)
+  const [addOpen, setAddOpen] = useState(false)
+  const [addNome, setAddNome] = useState("")
+  const [addCpf, setAddCpf] = useState("")
+  const [addEmail, setAddEmail] = useState("")
+  const [addCnpj, setAddCnpj] = useState("")
+  const [addSaving, setAddSaving] = useState(false)
+  const [addError, setAddError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch("/api/admin/session")
@@ -271,6 +286,54 @@ export default function AdminUsuariosPage() {
     })
   }, [orgaos, parsedSheet])
 
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAddError(null)
+    const email = addEmail.trim().toLowerCase()
+    if (!email) {
+      setAddError("E-mail é obrigatório.")
+      return
+    }
+    if (!addNome.trim()) {
+      setAddError("Nome completo é obrigatório.")
+      return
+    }
+    const cpfDigits = addCpf.replace(/\D/g, "")
+    if (!cpfDigits) {
+      setAddError("CPF é obrigatório.")
+      return
+    }
+    setAddSaving(true)
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome_completo: addNome.trim(),
+          cpf: cpfDigits,
+          email,
+          cnpj: addCnpj.replace(/\D/g, "") || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.errors?.length > 0) {
+        const msg = data.errors?.[0]?.error || data.error || "Não foi possível criar o usuário."
+        setAddError(msg)
+        return
+      }
+      setAddOpen(false)
+      setAddNome("")
+      setAddCpf("")
+      setAddEmail("")
+      setAddCnpj("")
+      loadUsers()
+    } catch {
+      setAddError("Erro de conexão.")
+    } finally {
+      setAddSaving(false)
+    }
+  }
+
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" })
     router.replace("/admin/login")
@@ -315,10 +378,82 @@ export default function AdminUsuariosPage() {
         )}
 
         <Tabs defaultValue="lista" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="lista">Lista de usuários</TabsTrigger>
-            <TabsTrigger value="importar">Importar em massa</TabsTrigger>
-          </TabsList>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <TabsList>
+              <TabsTrigger value="lista">Lista de usuários</TabsTrigger>
+              <TabsTrigger value="importar">Importar em massa</TabsTrigger>
+            </TabsList>
+            <Button type="button" onClick={() => { setAddError(null); setAddOpen(true) }}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              Adicionar usuário
+            </Button>
+          </div>
+
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Adicionar usuário</DialogTitle>
+                <DialogDescription>
+                  Cria um lead com login pelo e-mail e senha padrão (ADMIN_BULK_DEFAULT_PASSWORD). O usuário poderá alterar a senha depois.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleAddUser} className="space-y-4">
+                {addError && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{addError}</AlertDescription>
+                  </Alert>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="add-nome">Nome completo</Label>
+                  <Input
+                    id="add-nome"
+                    value={addNome}
+                    onChange={(e) => setAddNome(e.target.value)}
+                    placeholder="Nome do lead"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="add-cpf">CPF</Label>
+                  <Input
+                    id="add-cpf"
+                    value={addCpf}
+                    onChange={(e) => setAddCpf(e.target.value)}
+                    placeholder="Somente números"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="add-email">E-mail</Label>
+                  <Input
+                    id="add-email"
+                    type="email"
+                    value={addEmail}
+                    onChange={(e) => setAddEmail(e.target.value)}
+                    placeholder="será o usuário de login"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="add-cnpj">CNPJ (opcional)</Label>
+                  <Input
+                    id="add-cnpj"
+                    value={addCnpj}
+                    onChange={(e) => setAddCnpj(e.target.value)}
+                    placeholder="Opcional"
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setAddOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={addSaving}>
+                    {addSaving ? "Salvando…" : "Criar usuário"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
 
           <TabsContent value="lista" className="space-y-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

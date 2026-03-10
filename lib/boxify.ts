@@ -2,9 +2,8 @@
  * Helper para listar leads na API Boxify.
  * A API pode retornar 405 Method Not Allowed para GET /leads; neste caso
  * tentamos POST /leads com body { pipeline_id, limit } (padrão em algumas APIs).
+ * Requer BOXIFY_API_BASE_URL configurado no ambiente.
  */
-
-const BOXIFY_API_V1 = "https://boxify.com.br/api/v1"
 
 export function normalizeEnv(value: string | undefined): string {
   if (value == null || typeof value !== "string") return ""
@@ -13,8 +12,7 @@ export function normalizeEnv(value: string | undefined): string {
 
 export function getBoxifyBaseUrl(): string {
   const base = normalizeEnv(process.env.BOXIFY_API_BASE_URL)
-  if (base) return base.replace(/\/$/, "")
-  return BOXIFY_API_V1
+  return base ? base.replace(/\/$/, "") : ""
 }
 
 export type FetchLeadsResult =

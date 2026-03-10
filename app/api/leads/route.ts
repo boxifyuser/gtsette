@@ -35,8 +35,7 @@ export async function POST(request: NextRequest) {
         { status: 503 }
       )
     }
-    // Usar HTTPS na Boxify (a API pode rejeitar HTTP)
-    const baseUrl = boxifyBase.replace(/^http:\/\/boxify\.com\.br/, "https://boxify.com.br")
+    const baseUrl = boxifyBase
 
     const body = await request.json()
     const {

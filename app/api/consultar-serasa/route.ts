@@ -40,8 +40,16 @@ export async function POST(request: NextRequest) {
       const SERASA_TOKEN = process.env.SERASA_TOKEN
       
       // Tentar POST primeiro (formato mais comum para APIs de consulta)
+      const serasaBaseUrl = (process.env.SERASA_API_BASE_URL ?? "").replace(/\/$/, "")
+      if (!serasaBaseUrl) {
+        return NextResponse.json(
+          { error: "SERASA_API_BASE_URL não configurada no servidor." },
+          { status: 503 }
+        )
+      }
+      const consultaUrl = `${serasaBaseUrl}/sdsn/v1/consulta`
       const serasaResponse = await fetch(
-        `https://api.serasaexperian.com.br/sdsn/v1/consulta`,
+        consultaUrl,
         {
           method: "POST",
           headers: {

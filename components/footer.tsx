@@ -25,29 +25,39 @@ export function Footer() {
               vida financeira.
             </p>
             <div className="flex gap-3">
-              <a
-                href="#"
-                className="rounded-lg bg-white/10 p-2 transition-colors hover:bg-primary"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-4 w-4" />
-              </a>
-              <a
-                href="https://www.instagram.com/gtsette_solucoes/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-lg bg-white/10 p-2 transition-colors hover:bg-primary"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-4 w-4" />
-              </a>
-              <a
-                href="#"
-                className="rounded-lg bg-white/10 p-2 transition-colors hover:bg-primary"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="h-4 w-4" />
-              </a>
+              {process.env.NEXT_PUBLIC_FACEBOOK_URL && (
+                <a
+                  href={process.env.NEXT_PUBLIC_FACEBOOK_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg bg-white/10 p-2 transition-colors hover:bg-primary"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="h-4 w-4" />
+                </a>
+              )}
+              {process.env.NEXT_PUBLIC_INSTAGRAM_URL && (
+                <a
+                  href={process.env.NEXT_PUBLIC_INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg bg-white/10 p-2 transition-colors hover:bg-primary"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="h-4 w-4" />
+                </a>
+              )}
+              {process.env.NEXT_PUBLIC_LINKEDIN_URL && (
+                <a
+                  href={process.env.NEXT_PUBLIC_LINKEDIN_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg bg-white/10 p-2 transition-colors hover:bg-primary"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="h-4 w-4" />
+                </a>
+              )}
             </div>
           </div>
 
@@ -109,36 +119,40 @@ export function Footer() {
           <div>
             <h4 className="mb-4 font-semibold text-white">Contato</h4>
             <ul className="space-y-3 text-sm text-gray-300">
-              <li className="flex items-start gap-2">
-                <Phone className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                <div>
-                  <p>(31) 98250-6478</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <Mail className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                <p>contato@gtsette.com.br</p>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                <p>
-                  Av. Augusto de Lima, 407 – Loja 11
-                  <br />
-                  Lourdes – Belo Horizonte/MG
-                </p>
-              </li>
+              {process.env.NEXT_PUBLIC_CONTACT_PHONE && (
+                <li className="flex items-start gap-2">
+                  <Phone className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <div>
+                    <p>{process.env.NEXT_PUBLIC_CONTACT_PHONE}</p>
+                  </div>
+                </li>
+              )}
+              {process.env.NEXT_PUBLIC_CONTACT_EMAIL && (
+                <li className="flex items-start gap-2">
+                  <Mail className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <p>{process.env.NEXT_PUBLIC_CONTACT_EMAIL}</p>
+                </li>
+              )}
+              {process.env.NEXT_PUBLIC_CONTACT_ADDRESS && (
+                <li className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <p style={{ whiteSpace: "pre-line" }}>{process.env.NEXT_PUBLIC_CONTACT_ADDRESS.replace(/\\n/g, "\n")}</p>
+                </li>
+              )}
             </ul>
-            <Button asChild className="mt-4 w-full bg-primary text-white hover:bg-primary-hover" size="sm">
-              <a
-                href="https://wa.me/5531982506478"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2"
-              >
-                <Phone className="h-4 w-4" />
-                Falar no WhatsApp
-              </a>
-            </Button>
+            {process.env.NEXT_PUBLIC_WHATSAPP_NUMBER && (
+              <Button asChild className="mt-4 w-full bg-primary text-white hover:bg-primary-hover" size="sm">
+                <a
+                  href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2"
+                >
+                  <Phone className="h-4 w-4" />
+                  Falar no WhatsApp
+                </a>
+              </Button>
+            )}
           </div>
         </div>
 

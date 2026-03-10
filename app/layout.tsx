@@ -13,10 +13,10 @@ const inter = Inter({
   variable: "--font-inter",
 })
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  ...(siteUrl && { metadataBase: new URL(siteUrl) }),
   title: {
     default: "GTSETTE Soluções Financeiras - Limpa Nome e Recuperação de Crédito",
     template: "%s | GTSETTE Soluções Financeiras",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    url: siteUrl,
+    ...(siteUrl && { url: siteUrl }),
     siteName: "GTSETTE Soluções Financeiras",
     title: "GTSETTE Soluções Financeiras - Limpa Nome e Recuperação de Crédito",
     description:
@@ -91,9 +91,7 @@ export const metadata: Metadata = {
     apple: "/icon.png",
     shortcut: "/icon.png",
   },
-  alternates: {
-    canonical: siteUrl,
-  },
+  ...(siteUrl && { alternates: { canonical: siteUrl } }),
   verification: {
     // Adicione aqui os códigos de verificação quando disponíveis
     // google: "your-google-verification-code",
@@ -107,31 +105,35 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const contactPhone = process.env.NEXT_PUBLIC_CONTACT_PHONE ?? ""
+  const contactAddress = process.env.NEXT_PUBLIC_CONTACT_ADDRESS ?? ""
+  const instagramUrl = process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? ""
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FinancialService",
     name: "GTSETTE Soluções Financeiras",
     description:
       "Especialistas em Limpa Nome, regularização de CPF, aumento de Score e negociação de dívidas. Mais de 80 mil clientes que limparam nome conosco.",
-    url: siteUrl,
-    logo: `${siteUrl}/images/logo-gtsette.png`,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Av. Augusto de Lima, 407 – Loja 11",
-      addressLocality: "Belo Horizonte",
-      addressRegion: "MG",
-      addressCountry: "BR",
-    },
-    contactPoint: {
-      "@type": "ContactPoint",
-      telephone: "+55-31-98250-6478",
-      contactType: "customer service",
-      areaServed: "BR",
-      availableLanguage: "Portuguese",
-    },
-    sameAs: [
-      "https://www.instagram.com/gtsette_solucoes/",
-    ],
+    ...(siteUrl && { url: siteUrl }),
+    ...(siteUrl && { logo: `${siteUrl}/images/logo-gtsette.png` }),
+    ...(contactAddress && {
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: contactAddress,
+        addressCountry: "BR",
+      },
+    }),
+    ...(contactPhone && {
+      contactPoint: {
+        "@type": "ContactPoint",
+        telephone: contactPhone,
+        contactType: "customer service",
+        areaServed: "BR",
+        availableLanguage: "Portuguese",
+      },
+    }),
+    ...(instagramUrl && { sameAs: [instagramUrl] }),
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "4.9",
@@ -149,10 +151,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        {/* Meta Pixel Code */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
+        {process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID && (
+          <>
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -161,21 +164,22 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '1718096002485670');
+fbq('init', '${process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID}');
 fbq('track', 'PageView');
-            `,
-          }}
-        />
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1718096002485670&ev=PageView&noscript=1"
-            alt=""
-          />
-        </noscript>
-        {/* End Meta Pixel Code */}
+                `,
+              }}
+            />
+            <noscript>
+              <img
+                height="1"
+                width="1"
+                style={{ display: "none" }}
+                src={`https://www.facebook.com/tr?id=${process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID}&ev=PageView&noscript=1`}
+                alt=""
+              />
+            </noscript>
+          </>
+        )}
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <script

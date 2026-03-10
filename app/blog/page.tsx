@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Calendar, ArrowRight } from "lucide-react"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
   title: "Blog - Dicas e Conteúdos sobre Limpa Nome e Recuperação de Crédito",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: "Blog GTSETTE - Dicas de Limpa Nome e Recuperação de Crédito",
     description:
       "Conteúdos exclusivos sobre limpeza de nome, score de crédito, negociação de dívidas e muito mais.",
-    url: `${siteUrl}/blog`,
+    ...(siteUrl && { url: `${siteUrl}/blog` }),
   },
 }
 

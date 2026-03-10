@@ -1,8 +1,27 @@
 import { cookies } from "next/headers"
+import type { NextResponse } from "next/server"
 import { createHmac, timingSafeEqual } from "crypto"
 
-const COOKIE_NAME = "admin_sessao"
+export const ADMIN_SESSION_COOKIE_NAME = "admin_sessao"
+const COOKIE_NAME = ADMIN_SESSION_COOKIE_NAME
 const MAX_AGE = 60 * 60 * 8 // 8 horas
+
+/** Opções do cookie de sessão admin — use em NextResponse.cookies.set para o Set-Cookie ir na resposta. */
+export function getAdminSessionCookieOptions(): {
+  httpOnly: boolean
+  secure: boolean
+  sameSite: "lax"
+  maxAge: number
+  path: string
+} {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: MAX_AGE,
+    path: "/",
+  }
+}
 
 function getSecret(): string {
   const s = process.env.SESSION_SECRET || process.env.BOXIFY_SESSION_SECRET
@@ -56,16 +75,16 @@ export async function getAdminSession(): Promise<AdminSessionData | null> {
 
 export async function setAdminSessionCookie(payload: string): Promise<void> {
   const cookieStore = await cookies()
-  cookieStore.set(COOKIE_NAME, payload, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: MAX_AGE,
-    path: "/",
-  })
+  cookieStore.set(COOKIE_NAME, payload, getAdminSessionCookieOptions())
 }
 
 export async function deleteAdminSessionCookie(): Promise<void> {
   const cookieStore = await cookies()
   cookieStore.delete(COOKIE_NAME)
+}
+
+/** Limpa o cookie na resposta (preferir no logout para o browser receber Set-Cookie de expiração). */
+export function clearAdminSessionCookieOnResponse(res: NextResponse): NextResponse {
+  res.cookies.set(ADMIN_SESSION_COOKIE_NAME, "", { ...getAdminSessionCookieOptions(), maxAge: 0 })
+  return res
 }

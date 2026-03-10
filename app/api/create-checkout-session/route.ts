@@ -21,6 +21,14 @@ export async function POST(request: NextRequest) {
 
     const stripe = getStripe()
 
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "")
+    if (!baseUrl) {
+      return NextResponse.json(
+        { error: "URL da aplicação não configurada. Defina NEXT_PUBLIC_APP_URL ou NEXT_PUBLIC_SITE_URL." },
+        { status: 503 }
+      )
+    }
+
     // Criar sessão de checkout do Stripe
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card", "pix"],
@@ -38,8 +46,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/consulta/sucesso?session_id={CHECKOUT_SESSION_ID}&cpf=${encodeURIComponent(cpf)}&birthDate=${encodeURIComponent(birthDate)}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/consulta?canceled=true`,
+      success_url: `${baseUrl}/consulta/sucesso?session_id={CHECKOUT_SESSION_ID}&cpf=${encodeURIComponent(cpf)}&birthDate=${encodeURIComponent(birthDate)}`,
+      cancel_url: `${baseUrl}/consulta?canceled=true`,
       metadata: {
         cpf: cpf.replace(/\D/g, ""),
         birthDate: birthDate,

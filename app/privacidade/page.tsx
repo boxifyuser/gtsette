@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
   title: "Política de Privacidade",
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Política de Privacidade - GTSETTE Soluções Financeiras",
     description: "Conheça como tratamos seus dados pessoais em conformidade com a LGPD.",
-    url: `${siteUrl}/privacidade`,
+    ...(siteUrl && { url: `${siteUrl}/privacidade` }),
   },
 }
 
@@ -40,11 +40,17 @@ export default function PrivacidadePage() {
               <h2 className="mb-3 text-xl font-bold text-foreground">1. Controlador e Encarregado</h2>
               <p className="leading-relaxed">
                 O <strong>controlador</strong> dos dados pessoais é a GTSETTE Soluções Financeiras. Para exercer seus
-                direitos ou esclarecer dúvidas sobre o tratamento de dados, entre em contato:{" "}
-                <a href="mailto:contato@gtsette.com.br" className="text-primary underline hover:no-underline">
-                  contato@gtsette.com.br
-                </a>
-                , telefone (31) 98250-6478, ou endereço Av. Augusto de Lima, 407 – Loja 11, Lourdes – Belo Horizonte/MG.
+                direitos ou esclarecer dúvidas sobre o tratamento de dados, entre em contato
+                {process.env.NEXT_PUBLIC_CONTACT_EMAIL ? (
+                  <> pelo e-mail{" "}
+                    <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`} className="text-primary underline hover:no-underline">
+                      {process.env.NEXT_PUBLIC_CONTACT_EMAIL}
+                    </a>
+                  </>
+                ) : null}
+                {process.env.NEXT_PUBLIC_CONTACT_PHONE && `, telefone ${process.env.NEXT_PUBLIC_CONTACT_PHONE}`}
+                {process.env.NEXT_PUBLIC_CONTACT_ADDRESS && `, ou endereço ${process.env.NEXT_PUBLIC_CONTACT_ADDRESS}`}
+                .
               </p>
             </section>
 
@@ -112,9 +118,13 @@ export default function PrivacidadePage() {
               </ul>
               <p className="mt-3 leading-relaxed">
                 Para exercer esses direitos, entre em contato pelo e-mail{" "}
-                <a href="mailto:contato@gtsette.com.br" className="text-primary underline hover:no-underline">
-                  contato@gtsette.com.br
-                </a>
+                {process.env.NEXT_PUBLIC_CONTACT_EMAIL ? (
+                  <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`} className="text-primary underline hover:no-underline">
+                    {process.env.NEXT_PUBLIC_CONTACT_EMAIL}
+                  </a>
+                ) : (
+                  "configurado em NEXT_PUBLIC_CONTACT_EMAIL"
+                )}
                 . Responderemos em prazo razoável, nos termos da LGPD. Você também pode apresentar reclamação perante a
                 Autoridade Nacional de Proteção de Dados (ANPD).
               </p>
@@ -150,11 +160,17 @@ export default function PrivacidadePage() {
             <section>
               <h2 className="mb-3 text-xl font-bold text-foreground">10. Contato</h2>
               <p className="leading-relaxed">
-                Dúvidas sobre esta Política de Privacidade ou sobre o tratamento dos seus dados pessoais:{" "}
-                <a href="mailto:contato@gtsette.com.br" className="text-primary underline hover:no-underline">
-                  contato@gtsette.com.br
-                </a>
-                , telefone (31) 98250-6478, ou nosso endereço em Belo Horizonte/MG.
+                Dúvidas sobre esta Política de Privacidade ou sobre o tratamento dos seus dados pessoais
+                {process.env.NEXT_PUBLIC_CONTACT_EMAIL ? (
+                  <>:{" "}
+                    <a href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL}`} className="text-primary underline hover:no-underline">
+                      {process.env.NEXT_PUBLIC_CONTACT_EMAIL}
+                    </a>
+                  </>
+                ) : null}
+                {process.env.NEXT_PUBLIC_CONTACT_PHONE && `, telefone ${process.env.NEXT_PUBLIC_CONTACT_PHONE}`}
+                {process.env.NEXT_PUBLIC_CONTACT_ADDRESS && `, ou endereço ${process.env.NEXT_PUBLIC_CONTACT_ADDRESS}`}
+                .
               </p>
             </section>
           </div>

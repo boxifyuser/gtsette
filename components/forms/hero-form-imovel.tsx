@@ -1,12 +1,18 @@
 "use client"
 
+/** Meta Pixel (injetado pelo script no layout) */
+declare const fbq: ((action: string, event: string) => void) | undefined
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MessageCircle, Loader2 } from "lucide-react"
 
-const WHATSAPP_LEAD_URL = "https://api.whatsapp.com/send/?phone=5531982506478"
+function getWhatsAppLeadUrl(): string {
+  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, "") ?? ""
+  return number ? `https://api.whatsapp.com/send/?phone=${number}` : ""
+}
 
 /** Slug da página onde o formulário está — define a mensagem do WhatsApp e o source da API */
 export type HeroFormPageSlug = "home" | "financiamento-imovel" | "financiamento-veiculo"
@@ -125,11 +131,20 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
         return
       }
 
-      window.open(
-        `${WHATSAPP_LEAD_URL}&text=${encodeURIComponent(msg)}`,
-        "_blank",
-        "noopener,noreferrer"
-      )
+      if (data.success) {
+        if (typeof fbq === "function") {
+          fbq("track", "Lead")
+        }
+      }
+
+      const whatsappUrl = getWhatsAppLeadUrl()
+      if (whatsappUrl) {
+        window.open(
+          `${whatsappUrl}&text=${encodeURIComponent(msg)}`,
+          "_blank",
+          "noopener,noreferrer"
+        )
+      }
       setNome("")
       setTelefone("")
       setEmail("")

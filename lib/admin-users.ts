@@ -107,7 +107,8 @@ export async function createLeadUser(data: LeadRow): Promise<{ id: string } | { 
   const email = (data.email || "").trim().toLowerCase()
   if (!email) return { error: "E-mail é obrigatório." }
   const username = email
-  const defaultPassword = process.env.ADMIN_BULK_DEFAULT_PASSWORD || "Trocar@123"
+  const defaultPassword = process.env.ADMIN_BULK_DEFAULT_PASSWORD
+  if (!defaultPassword) return { error: "Configure ADMIN_BULK_DEFAULT_PASSWORD no servidor para criar usuários em lote." }
   const result = await createUser(username, defaultPassword)
   if ("error" in result) return result
   const err = await saveCadastro(result.user.id, {

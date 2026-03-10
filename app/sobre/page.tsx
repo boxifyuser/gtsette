@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Award, Eye, Heart, Target, TrendingUp } from "lucide-react"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gtsette.com.br"
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
   title: "Sobre Nós - GTSETTE Soluções Financeiras",
@@ -94,7 +94,7 @@ export default function SobrePage() {
           </div>
           <div className="overflow-hidden rounded-2xl shadow-2xl">
             <video controls className="w-full" poster="/images/logo-gtsette.png">
-              <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/VIDEO-GTSETTE-Ql2ppLuCpm6du2IELNSawK3UGBUZz8.mp4" type="video/mp4" />
+              <source src={process.env.NEXT_PUBLIC_VIDEO_HERO_URL ?? ""} type="video/mp4" />
               Seu navegador não suporta a reprodução de vídeos.
             </video>
           </div>

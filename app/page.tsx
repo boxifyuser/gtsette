@@ -113,7 +113,7 @@ export default function Home() {
                   className="h-14 bg-gradient-to-r from-primary via-primary-hover to-primary px-8 text-base font-semibold text-white shadow-lg transition-all hover:shadow-xl"
                 >
                   <a
-                    href="https://wa.me/5531982506478"
+                    href={process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ? `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER.replace(/\D/g, "")}` : "#"}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2"
@@ -151,7 +151,7 @@ export default function Home() {
             <div className="order-2 lg:order-1">
               <div className="overflow-hidden rounded-2xl shadow-2xl">
                 <video controls className="w-full" poster="/images/escritorio-thumb.jpg" preload="metadata">
-                  <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/VIDEO-GTSETTE-Ql2ppLuCpm6du2IELNSawK3UGBUZz8.mp4" type="video/mp4" />
+                  <source src={process.env.NEXT_PUBLIC_VIDEO_HERO_URL ?? ""} type="video/mp4" />
                   Seu navegador não suporta a reprodução de vídeos.
                 </video>
               </div>
@@ -256,7 +256,7 @@ export default function Home() {
               className="h-12 rounded-lg bg-gray-900 px-8 text-base font-medium text-white shadow-sm transition-all hover:bg-gray-800 hover:shadow-md"
             >
               <a
-                href="https://www.instagram.com/gtsette_solucoes/reels/"
+                href={process.env.NEXT_PUBLIC_INSTAGRAM_REELS_URL ?? process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "#"}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -281,7 +281,7 @@ export default function Home() {
                 title="Conheça nosso escritório"
               >
                 <source
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Nosso%20escrit%C3%B3rio-xvcT1pSiiQMN1rOTJ5wCU6xrzSBHC1.mp4"
+                  src={process.env.NEXT_PUBLIC_VIDEO_ESCRITORIO_URL ?? ""}
                   type="video/mp4"
                 />
                 Seu navegador não suporta a reprodução de vídeos.
@@ -305,7 +305,7 @@ export default function Home() {
                 <p className="font-semibold text-gray-900">Av. Augusto de Lima, 407 – Loja 11</p>
                 <p className="text-sm text-gray-600">Lourdes – Belo Horizonte/MG</p>
                 <a
-                  href="https://www.google.com/maps/dir//Av.+Augusto+de+Lima,+407+-+Loja+11+-+Lourdes,+Belo+Horizonte+-+MG"
+                  href={process.env.NEXT_PUBLIC_MAPS_URL_BELO_HORIZONTE ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-1 inline-flex w-fit items-center gap-2 text-sm font-medium text-primary hover:underline"
@@ -321,7 +321,7 @@ export default function Home() {
                 <p className="font-semibold text-gray-900">Rua Cândido Mariano, 115 – Centro</p>
                 <p className="text-sm text-gray-600">Cuiabá – MT</p>
                 <a
-                  href="https://www.google.com/maps/dir//Rua+C%C3%A2ndido+Mariano+115,+Centro,+Cuiab%C3%A1+-+MT"
+                  href={process.env.NEXT_PUBLIC_MAPS_URL_CUIABA ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-1 inline-flex w-fit items-center gap-2 text-sm font-medium text-primary hover:underline"
