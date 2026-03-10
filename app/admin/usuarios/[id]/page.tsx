@@ -16,7 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { LogOut, ArrowLeft, Plus, Pencil, Trash2, Upload } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { LogOut, ArrowLeft, Plus, Pencil, Trash2, Upload, KeyRound, Mail, Copy, Check, MessageCircle } from "lucide-react"
 import { sanitizeSituacaoPorOrgao } from "@/lib/situacao-por-orgao"
 
 interface Processo {
@@ -104,6 +112,18 @@ export default function AdminUsuarioDetailPage() {
   const [bulkText, setBulkText] = useState("")
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
+
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
+  const [newPassword, setNewPassword] = useState("")
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("")
+  const [generatedDialogOpen, setGeneratedDialogOpen] = useState(false)
+  const [generatedPassword, setGeneratedPassword] = useState("")
+  const [generatedEmailSent, setGeneratedEmailSent] = useState(false)
+  const [generatedWhatsappSent, setGeneratedWhatsappSent] = useState(false)
+  const [generatedWhatsappLink, setGeneratedWhatsappLink] = useState("")
+  const [whatsappPhoneDialogOpen, setWhatsappPhoneDialogOpen] = useState(false)
+  const [whatsappPhone, setWhatsappPhone] = useState("")
+  const [copied, setCopied] = useState(false)
 
   const loadSession = useCallback(() => {
     return fetch("/api/admin/session")
@@ -311,6 +331,118 @@ export default function AdminUsuarioDetailPage() {
     router.replace("/admin/login")
   }
 
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newPassword.length < 6) {
+      setMessage("A senha deve ter pelo menos 6 caracteres.")
+      return
+    }
+    if (newPassword !== newPasswordConfirm) {
+      setMessage("As senhas não coincidem.")
+      return
+    }
+    setSaving(true)
+    setMessage("")
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/password`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: newPassword }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setMessage("Senha alterada com sucesso.")
+        setPasswordDialogOpen(false)
+        setNewPassword("")
+        setNewPasswordConfirm("")
+      } else setMessage(data.error || "Erro ao alterar senha.")
+    } catch {
+      setMessage("Erro de conexão.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const openGeneratedDialog = (data: {
+    temporaryPassword?: string
+    emailSent?: boolean
+    whatsappSent?: boolean
+    whatsappLink?: string
+    message?: string
+  }) => {
+    setGeneratedPassword(data.temporaryPassword || "")
+    setGeneratedEmailSent(Boolean(data.emailSent))
+    setGeneratedWhatsappSent(Boolean(data.whatsappSent))
+    setGeneratedWhatsappLink(typeof data.whatsappLink === "string" ? data.whatsappLink : "")
+    setGeneratedDialogOpen(true)
+    setMessage(data.message || "")
+  }
+
+  /** Gera senha e envia só por e-mail (Resend). */
+  const handleSendPasswordEmail = async () => {
+    setSaving(true)
+    setMessage("")
+    setCopied(false)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ delivery: "email", sendEmail: true }),
+      })
+      const data = await res.json()
+      if (data.success) openGeneratedDialog(data)
+      else setMessage(data.error || "Erro ao gerar/enviar senha.")
+    } catch {
+      setMessage("Erro de conexão.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  /** Abre dialog para informar WhatsApp; depois gera senha e link/API. */
+  const handleSendPasswordWhatsappClick = () => {
+    setWhatsappPhone("")
+    setWhatsappPhoneDialogOpen(true)
+  }
+
+  const handleSendPasswordWhatsappSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const phone = whatsappPhone.replace(/\D/g, "")
+    if (phone.length < 10) {
+      setMessage("Informe DDD + número (ex.: 11999998888).")
+      return
+    }
+    setSaving(true)
+    setMessage("")
+    setCopied(false)
+    setWhatsappPhoneDialogOpen(false)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ delivery: "whatsapp", whatsappPhone }),
+      })
+      const data = await res.json()
+      if (data.success) openGeneratedDialog(data)
+      else setMessage(data.error || "Erro ao gerar/enviar senha.")
+    } catch {
+      setMessage("Erro de conexão.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const copyGeneratedPassword = async () => {
+    if (!generatedPassword) return
+    try {
+      await navigator.clipboard.writeText(generatedPassword)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setMessage("Não foi possível copiar. Selecione e copie manualmente.")
+    }
+  }
+
   if (loading || !adminUsername) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -363,6 +495,36 @@ export default function AdminUsuarioDetailPage() {
 
         <div className="mb-6 flex flex-wrap gap-2">
           <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setNewPassword("")
+              setNewPasswordConfirm("")
+              setPasswordDialogOpen(true)
+            }}
+          >
+            <KeyRound className="mr-2 h-4 w-4" /> Alterar senha
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={saving}
+            onClick={handleSendPasswordEmail}
+          >
+            <Mail className="mr-2 h-4 w-4" /> Enviar senha por e-mail
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={saving}
+            onClick={handleSendPasswordWhatsappClick}
+          >
+            <MessageCircle className="mr-2 h-4 w-4" /> Enviar senha por WhatsApp
+          </Button>
+          <Button
             variant={showNewForm ? "secondary" : "default"}
             size="sm"
             onClick={() => {
@@ -391,6 +553,132 @@ export default function AdminUsuarioDetailPage() {
             <Upload className="mr-2 h-4 w-4" /> Subir em massa
           </Button>
         </div>
+
+        <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Alterar senha do usuário</DialogTitle>
+              <DialogDescription>
+                Defina uma nova senha para {user?.username || "este usuário"}. Mínimo 6 caracteres.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSetPassword} className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="admin-new-password">Nova senha</Label>
+                <Input
+                  id="admin-new-password"
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="admin-new-password-confirm">Confirmar senha</Label>
+                <Input
+                  id="admin-new-password-confirm"
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPasswordConfirm}
+                  onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                  placeholder="Repita a senha"
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setPasswordDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Salvando..." : "Salvar senha"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={whatsappPhoneDialogOpen} onOpenChange={setWhatsappPhoneDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Número do WhatsApp</DialogTitle>
+              <DialogDescription>
+                Informe o DDD e o número (somente números ou com máscara). A senha será gerada e você poderá
+                abrir o WhatsApp com a mensagem pronta, ou enviada automaticamente se Twilio estiver configurado.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSendPasswordWhatsappSubmit} className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp-phone">WhatsApp (DDD + número)</Label>
+                <Input
+                  id="whatsapp-phone"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  placeholder="11999998888"
+                  value={whatsappPhone}
+                  onChange={(e) => setWhatsappPhone(e.target.value)}
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setWhatsappPhoneDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={saving}>
+                  {saving ? "Gerando..." : "Gerar e abrir WhatsApp"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={generatedDialogOpen} onOpenChange={setGeneratedDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {generatedEmailSent && generatedWhatsappSent
+                  ? "E-mail e WhatsApp enviados"
+                  : generatedEmailSent
+                    ? "E-mail enviado"
+                    : generatedWhatsappSent
+                      ? "WhatsApp enviado"
+                      : generatedWhatsappLink
+                        ? "Abrir WhatsApp"
+                        : "Senha gerada"}
+              </DialogTitle>
+              <DialogDescription>
+                {generatedEmailSent &&
+                  "Uma nova senha foi enviada para o e-mail do cadastro. "}
+                {generatedWhatsappSent && "A mensagem foi enviada por WhatsApp (Twilio). "}
+                {generatedWhatsappLink &&
+                  !generatedWhatsappSent &&
+                  "Clique abaixo para abrir o WhatsApp com a mensagem já preenchida (confirme o envio no app). "}
+                {!generatedEmailSent &&
+                  !generatedWhatsappSent &&
+                  !generatedWhatsappLink &&
+                  "Configure RESEND_API_KEY / RESEND_FROM para e-mail ou Twilio WhatsApp para envio automático; ou copie a senha e envie manualmente."}
+              </DialogDescription>
+            </DialogHeader>
+            {generatedPassword && (
+              <div className="flex items-center gap-2 rounded-md border bg-muted/50 p-3">
+                <code className="flex-1 break-all text-sm">{generatedPassword}</code>
+                <Button type="button" size="sm" variant="secondary" onClick={copyGeneratedPassword}>
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            )}
+            {generatedWhatsappLink && (
+              <Button type="button" className="w-full" asChild>
+                <a href={generatedWhatsappLink} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="mr-2 h-4 w-4" /> Abrir WhatsApp com mensagem
+                </a>
+              </Button>
+            )}
+            <DialogFooter>
+              <Button type="button" onClick={() => setGeneratedDialogOpen(false)}>
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {(showNewForm || editingId) && (
           <Card className="mb-6">

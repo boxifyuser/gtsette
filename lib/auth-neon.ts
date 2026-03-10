@@ -89,3 +89,52 @@ export async function createUser(username: string, password: string): Promise<{ 
     return { error: "Erro ao criar usuário. Tente novamente." }
   }
 }
+
+/** Busca usuário por id (auth_users). */
+export async function getUserById(userId: string): Promise<AuthUser | null> {
+  if (!sql) return null
+  const ok = await ensureAuthTable()
+  if (!ok) return null
+  const id = String(userId).trim()
+  if (!id) return null
+  const rows = await sql`
+    SELECT id, username, password_hash, created_at
+    FROM auth_users
+    WHERE id = ${id}
+    LIMIT 1
+  `
+  const row = rows[0]
+  if (!row || typeof row !== "object") return null
+  const r = row as Record<string, unknown>
+  return {
+    id: String(r.id),
+    username: String(r.username),
+    password_hash: String(r.password_hash),
+    created_at: r.created_at instanceof Date ? r.created_at : new Date(String(r.created_at)),
+  }
+}
+
+/** Atualiza senha do usuário por id. */
+export async function setPasswordByUserId(
+  userId: string,
+  password: string
+): Promise<{ ok: true } | { error: string }> {
+  if (!sql) return { error: "Banco não configurado." }
+  const ok = await ensureAuthTable()
+  if (!ok) return { error: "Não foi possível acessar a tabela de usuários." }
+  if (password.length < 6) return { error: "Senha deve ter pelo menos 6 caracteres." }
+  const user = await getUserById(userId)
+  if (!user) return { error: "Usuário não encontrado." }
+  const passwordHash = await hashPassword(password)
+  try {
+    await sql`
+      UPDATE auth_users
+      SET password_hash = ${passwordHash}
+      WHERE id = ${userId}
+    `
+    return { ok: true }
+  } catch (e) {
+    console.error("[auth-neon] setPasswordByUserId:", e)
+    return { error: "Erro ao atualizar senha." }
+  }
+}
