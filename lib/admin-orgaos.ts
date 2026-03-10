@@ -19,7 +19,7 @@ const DEFAULT_ORGAOS = [
   "SPC",
   "Boa Vista",
   "Cenprot SP",
-  "CENPRO Nacional",
+  "CENPROT Nacional",
   "Outros",
 ]
 

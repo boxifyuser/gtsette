@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { LogOut, ArrowLeft, Plus, Pencil, Trash2, Upload } from "lucide-react"
+import { sanitizeSituacaoPorOrgao } from "@/lib/situacao-por-orgao"
 
 interface Processo {
   id: string
@@ -37,6 +38,9 @@ const ORGAO_STATUS_OPCOES = [
   "Em Andamento",
   "100% baixado",
 ] as const
+
+/** Tipos fixos para o campo "Tipo do processo" em admin/usuários */
+const TIPO_PROCESSO_OPCOES = ["Limpeza de CPF", "Limpeza de CNPJ"] as const
 
 /** Converte qualquer valor de data para yyyy-MM-dd (exigido por input type="date"). */
 function toDateInputValue(value: string | null | undefined): string {
@@ -163,7 +167,11 @@ export default function AdminUsuarioDetailPage() {
           observacoes: formObs || null,
           data_atualizacao: formDataAtual ? toDateInputValue(formDataAtual) || null : null,
           data_conclusao: formDataConc ? toDateInputValue(formDataConc) || null : null,
-          situacao_por_orgao: Object.fromEntries(Object.entries(formSituacaoPorOrgao).filter(([, v]) => v != null && String(v).trim() !== "")),
+          situacao_por_orgao: sanitizeSituacaoPorOrgao(
+            Object.fromEntries(
+              Object.entries(formSituacaoPorOrgao).filter(([, v]) => v != null && String(v).trim() !== "")
+            )
+          ),
         }),
       })
       const data = await res.json()
@@ -194,7 +202,11 @@ export default function AdminUsuarioDetailPage() {
           observacoes: formObs || null,
           data_atualizacao: formDataAtual ? toDateInputValue(formDataAtual) || null : null,
           data_conclusao: formDataConc ? toDateInputValue(formDataConc) || null : null,
-          situacao_por_orgao: Object.fromEntries(Object.entries(formSituacaoPorOrgao).filter(([, v]) => v != null && String(v).trim() !== "")),
+          situacao_por_orgao: sanitizeSituacaoPorOrgao(
+            Object.fromEntries(
+              Object.entries(formSituacaoPorOrgao).filter(([, v]) => v != null && String(v).trim() !== "")
+            )
+          ),
         }),
       })
       const data = await res.json()
@@ -235,7 +247,11 @@ export default function AdminUsuarioDetailPage() {
     setFormObs(p.observacoes || "")
     setFormDataAtual(toDateInputValue(p.data_atualizacao))
     setFormDataConc(toDateInputValue(p.data_conclusao))
-    setFormSituacaoPorOrgao(p.situacao_por_orgao && typeof p.situacao_por_orgao === "object" ? { ...p.situacao_por_orgao } : {})
+    setFormSituacaoPorOrgao(
+      sanitizeSituacaoPorOrgao(
+        p.situacao_por_orgao && typeof p.situacao_por_orgao === "object" ? { ...p.situacao_por_orgao } : {}
+      )
+    )
     setShowNewForm(false)
     setShowBulk(false)
   }
@@ -375,7 +391,23 @@ export default function AdminUsuarioDetailPage() {
               <form onSubmit={editingId ? handleUpdate : handleCreate} className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Tipo do processo</Label>
-                  <Input value={formTipo} onChange={(e) => setFormTipo(e.target.value)} placeholder="Ex: Limpa Nome" />
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    value={formTipo}
+                    onChange={(e) => setFormTipo(e.target.value)}
+                  >
+                    <option value="">Selecione o tipo</option>
+                    {TIPO_PROCESSO_OPCOES.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                    {/* Processos antigos com outro texto: mantém editável sem perder o valor */}
+                    {formTipo &&
+                      !(TIPO_PROCESSO_OPCOES as readonly string[]).includes(formTipo) && (
+                        <option value={formTipo}>{formTipo} (valor atual)</option>
+                      )}
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <Label>Status do processo</Label>
@@ -434,7 +466,7 @@ export default function AdminUsuarioDetailPage() {
             <CardHeader>
               <CardTitle>Subir em massa</CardTitle>
               <CardDescription>
-                Uma linha por processo. Colunas separadas por ponto-e-vírgula: tipo;status;observações;data_atualizacao(YYYY-MM-DD);data_conclusao(YYYY-MM-DD)
+                Uma linha por processo. Colunas separadas por ponto-e-vírgula: tipo;status;observações;data_atualizacao(YYYY-MM-DD);data_conclusao(YYYY-MM-DD). Tipo recomendado: Limpeza de CPF ou Limpeza de CNPJ.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -443,7 +475,7 @@ export default function AdminUsuarioDetailPage() {
                   className="mb-4 min-h-[120px] w-full rounded-md border bg-background px-3 py-2 text-sm"
                   value={bulkText}
                   onChange={(e) => setBulkText(e.target.value)}
-                  placeholder="Limpa Nome;Em andamento;Aguardando documentação;2025-03-01;;&#10;Restauração Score;Concluído;Finalizado;2025-03-05;2025-03-05"
+                  placeholder="Limpeza de CPF;Em andamento;Aguardando documentação;2025-03-01;;&#10;Limpeza de CNPJ;Baixado;Finalizado;2025-03-05;2025-03-05"
                 />
                 <Button type="submit" disabled={saving}>{saving ? "Enviando..." : "Importar"}</Button>
               </form>

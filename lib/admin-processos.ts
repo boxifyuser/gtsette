@@ -1,4 +1,5 @@
 import { sql, ensureProcessosTable } from "@/lib/db"
+import { sanitizeSituacaoPorOrgao } from "@/lib/situacao-por-orgao"
 
 export interface ProcessoRow {
   id: string
@@ -25,10 +26,11 @@ export interface ProcessoInput {
 function parseSituacaoPorOrgao(v: unknown): Record<string, string> | null {
   if (v == null) return null
   if (typeof v !== "object" || Array.isArray(v)) return null
-  const out: Record<string, string> = {}
+  const raw: Record<string, string> = {}
   for (const [k, val] of Object.entries(v)) {
-    if (typeof k === "string" && typeof val === "string") out[k] = val
+    if (typeof k === "string" && typeof val === "string") raw[k] = val
   }
+  const out = sanitizeSituacaoPorOrgao(raw)
   return Object.keys(out).length ? out : null
 }
 
@@ -81,7 +83,8 @@ export async function createProcesso(userId: string, data: ProcessoInput): Promi
   const obs = data.observacoes?.trim() || null
   const dataAtual = data.data_atualizacao?.trim() || null
   const dataConc = data.data_conclusao?.trim() || null
-  const situacao = data.situacao_por_orgao && Object.keys(data.situacao_por_orgao).length > 0 ? JSON.stringify(data.situacao_por_orgao) : "{}"
+  const situacaoObj = sanitizeSituacaoPorOrgao(data.situacao_por_orgao ?? {})
+  const situacao = Object.keys(situacaoObj).length > 0 ? JSON.stringify(situacaoObj) : "{}"
   try {
     const rows = await sql`
       INSERT INTO user_processos (user_id, tipo_processo, status_processo, observacoes, data_atualizacao, data_conclusao, situacao_por_orgao, updated_at)
@@ -105,9 +108,17 @@ export async function updateProcesso(id: string, data: ProcessoInput): Promise<{
   const obs = data.observacoes !== undefined ? (data.observacoes?.trim() || null) : current.observacoes
   const dataAtual = data.data_atualizacao !== undefined ? (data.data_atualizacao?.trim() || null) : current.data_atualizacao
   const dataConc = data.data_conclusao !== undefined ? (data.data_conclusao?.trim() || null) : current.data_conclusao
-  const situacao = data.situacao_por_orgao !== undefined
-    ? (data.situacao_por_orgao && Object.keys(data.situacao_por_orgao).length > 0 ? JSON.stringify(data.situacao_por_orgao) : "{}")
-    : (current.situacao_por_orgao && Object.keys(current.situacao_por_orgao).length > 0 ? JSON.stringify(current.situacao_por_orgao) : "{}")
+  const situacao =
+    data.situacao_por_orgao !== undefined
+      ? (() => {
+          const cleaned = sanitizeSituacaoPorOrgao(data.situacao_por_orgao ?? {})
+          return Object.keys(cleaned).length > 0 ? JSON.stringify(cleaned) : "{}"
+        })()
+      : (() => {
+          // Regravar JSON limpo para retirar valores inválidos (ex.: admin/usuários) sem exigir reedição
+          const cleaned = sanitizeSituacaoPorOrgao(current.situacao_por_orgao ?? {})
+          return Object.keys(cleaned).length > 0 ? JSON.stringify(cleaned) : "{}"
+        })()
   try {
     await sql`
       UPDATE user_processos SET

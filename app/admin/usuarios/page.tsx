@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { LogOut, User, ArrowRight, Search, Upload, Download, FileSpreadsheet, Trash2, UserPlus } from "lucide-react"
+import { sanitizeSituacaoPorOrgao } from "@/lib/situacao-por-orgao"
 
 const PER_PAGE_OPTS = [10, 25, 50, 100] as const
 const DEFAULT_PER_PAGE = 50
@@ -643,6 +644,7 @@ export default function AdminUsuariosPage() {
                         const v = getVal(row, mapping[ORGAO_MAPPING_PREFIX + o.nome] ?? null)
                         if (v.trim()) situacaoPorOrgao[o.nome] = v.trim()
                       })
+                      const situacaoLimpa = sanitizeSituacaoPorOrgao(situacaoPorOrgao)
                       return {
                         nome_completo: nome,
                         cpf: cpfRaw.replace(/\D/g, ""),
@@ -653,7 +655,7 @@ export default function AdminUsuariosPage() {
                         observacoes: observacoes || null,
                         data_atualizacao: dataAtualizacao || null,
                         data_conclusao: dataConclusao || null,
-                        situacao_por_orgao: Object.keys(situacaoPorOrgao).length > 0 ? JSON.stringify(situacaoPorOrgao) : null,
+                        situacao_por_orgao: Object.keys(situacaoLimpa).length > 0 ? JSON.stringify(situacaoLimpa) : null,
                       }
                     })
                     setBulkResult(null)

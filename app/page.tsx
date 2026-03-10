@@ -13,6 +13,13 @@ import fs from "fs"
 import Link from "next/link"
 import path from "path"
 
+const VIDEO_HERO_POSTER = "/images/escritorio-thumb.jpg"
+/** URL do vídeo hero; se vazia, exibe só o poster (evita src="" no <source>) */
+const videoHeroUrl =
+  typeof process.env.NEXT_PUBLIC_VIDEO_HERO_URL === "string"
+    ? process.env.NEXT_PUBLIC_VIDEO_HERO_URL.trim() || null
+    : null
+
 const DEPOIMENTOS_PADRAO = [
   "/images/depoimentos/depoimento-1.png",
   "/images/depoimentos/depoimento-2.png",
@@ -150,10 +157,25 @@ export default function Home() {
             {/* Video */}
             <div className="order-2 lg:order-1">
               <div className="overflow-hidden rounded-2xl shadow-2xl">
-                <video controls className="w-full" poster="/images/escritorio-thumb.jpg" preload="metadata">
-                  <source src={process.env.NEXT_PUBLIC_VIDEO_HERO_URL ?? ""} type="video/mp4" />
-                  Seu navegador não suporta a reprodução de vídeos.
-                </video>
+                {videoHeroUrl ? (
+                  <video
+                    controls
+                    className="w-full"
+                    poster={VIDEO_HERO_POSTER}
+                    preload="metadata"
+                  >
+                    <source src={videoHeroUrl} type="video/mp4" />
+                    Seu navegador não suporta a reprodução de vídeos.
+                  </video>
+                ) : (
+                  <img
+                    src={VIDEO_HERO_POSTER}
+                    alt="GTSETTE Soluções"
+                    className="w-full object-cover"
+                    width={1200}
+                    height={675}
+                  />
+                )}
               </div>
             </div>
 
