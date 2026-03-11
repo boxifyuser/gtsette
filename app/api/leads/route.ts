@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 
 // BOXIFY_API_BASE_URL e BOXIFY_API_TOKEN devem estar definidos em .env.local
 
-/** Pipeline usado no site (leads do formulário hero). Pode ser sobrescrito por BOXIFY_PIPELINE_ID. */
-const DEFAULT_PIPELINE_ID = "9abf49fa-1b05-4be7-8ec5-76646e4df53d"
-
 /** Extrai valor numérico de string (ex: "R$ 50.000" -> 50000) */
 function parseValue(value: string | undefined): number | undefined {
   if (!value || typeof value !== "string") return undefined
@@ -47,10 +44,7 @@ export async function POST(request: NextRequest) {
       phone,
       document,
       value: valueRaw,
-      status: statusRaw,
       score,
-      pipeline_id,
-      stage_id,
       custom_fields,
     } = body
 
@@ -62,26 +56,16 @@ export async function POST(request: NextRequest) {
     }
 
     const value = parseValue(valueRaw)
-    const statusList = ["new", "contacted", "qualified", "proposal", "won", "lost"] as const
-    const status = statusList.includes(statusRaw) ? statusRaw : "new"
 
-    // Body conforme doc Boxify: POST .../leads (pipeline_id costuma ser obrigatório para criar lead)
-    const pipelineId =
-      (pipeline_id && String(pipeline_id).trim()) ||
-      normalizeEnv(process.env.BOXIFY_PIPELINE_ID) ||
-      DEFAULT_PIPELINE_ID
-
+    // Não enviamos pipeline_id nem stage_id — a Boxify usa o pipeline padrão da conta.
     const payload: Record<string, unknown> = {
       name: name.trim(),
-      status,
-      pipeline_id: pipelineId,
     }
     if (email && String(email).trim()) payload.email = String(email).trim()
     if (phone && String(phone).trim()) payload.phone = String(phone).trim()
     if (document && String(document).trim()) payload.document = String(document).trim().replace(/\D/g, "")
     if (value !== undefined) payload.value = value
     if (score !== undefined && Number.isFinite(Number(score))) payload.score = Math.min(100, Math.max(0, Number(score)))
-    if (stage_id && String(stage_id).trim()) payload.stage_id = String(stage_id).trim()
     const source = body.source
     const baseCustom =
       custom_fields && typeof custom_fields === "object" && !Array.isArray(custom_fields) ? custom_fields : {}

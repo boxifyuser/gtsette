@@ -10,8 +10,10 @@ import { Label } from "@/components/ui/label"
 import { MessageCircle, Loader2 } from "lucide-react"
 
 function getWhatsAppLeadUrl(): string {
-  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, "") ?? ""
-  return number ? `https://api.whatsapp.com/send/?phone=${number}` : ""
+  const number = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "").replace(/\D/g, "")
+  if (!number) return ""
+  const phone = number.startsWith("55") ? number : `55${number}`
+  return `https://wa.me/${phone}`
 }
 
 /** Slug da página onde o formulário está — define a mensagem do WhatsApp e o source da API */
@@ -78,11 +80,15 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
   const [valorDivida, setValorDivida] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successWhatsAppUrl, setSuccessWhatsAppUrl] = useState<string | null>(null)
+  const [whatsappLinkToShow, setWhatsappLinkToShow] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{ telefone?: string; email?: string }>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setSuccessWhatsAppUrl(null)
+    setWhatsappLinkToShow(null)
     setFieldErrors({})
 
     const errors: { telefone?: string; email?: string } = {}
@@ -144,9 +150,18 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
       }
 
       const whatsappUrl = getWhatsAppLeadUrl()
-      if (whatsappUrl) {
-        const fullUrl = `${whatsappUrl}&text=${encodeURIComponent(msg)}`
-        window.open(fullUrl, "_blank", "noopener,noreferrer")
+      const fullUrl = whatsappUrl ? `${whatsappUrl}?text=${encodeURIComponent(msg)}` : ""
+      if (fullUrl) {
+        const a = document.createElement("a")
+        a.href = fullUrl
+        a.target = "_blank"
+        a.rel = "noopener noreferrer"
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        setWhatsappLinkToShow(fullUrl)
+      } else {
+        setSuccessWhatsAppUrl(msg)
       }
       setNome("")
       setTelefone("")
@@ -170,6 +185,31 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
       {error && (
         <p className="mb-4 rounded-lg bg-red-500/20 px-3 py-2 text-sm text-red-200">
           {error}
+        </p>
+      )}
+      {whatsappLinkToShow && (
+        <p className="mb-4 rounded-lg bg-green-500/20 px-3 py-2 text-sm text-green-200">
+          Lead enviado!{" "}
+          <a
+            href={whatsappLinkToShow}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline"
+          >
+            Clique aqui para abrir o WhatsApp
+          </a>
+        </p>
+      )}
+      {successWhatsAppUrl && (
+        <p className="mb-4 rounded-lg bg-green-500/20 px-3 py-2 text-sm text-green-200">
+          Lead enviado! Configure NEXT_PUBLIC_WHATSAPP_NUMBER no .env.local para abrir o WhatsApp. Mensagem para copiar:{" "}
+          <button
+            type="button"
+            className="underline"
+            onClick={() => navigator.clipboard?.writeText(successWhatsAppUrl)}
+          >
+            Copiar
+          </button>
         </p>
       )}
       <div className="space-y-3 sm:space-y-4">
