@@ -39,6 +39,8 @@ type DbField =
   | "nome_completo"
   | "cpf"
   | "email"
+  | "data_nascimento"
+  | "telefone"
   | "cnpj"
   | "tipo_processo"
   | "status_processo"
@@ -49,6 +51,8 @@ const DB_FIELDS: { key: DbField; label: string; required: boolean }[] = [
   { key: "nome_completo", label: "Nome completo", required: true },
   { key: "cpf", label: "CPF", required: true },
   { key: "email", label: "E-mail", required: true },
+  { key: "data_nascimento", label: "Data nasc. (AAAA-MM-DD ou DD/MM/AAAA) — primeiro acesso", required: false },
+  { key: "telefone", label: "Telefone (DDD+número) — primeiro acesso", required: false },
   { key: "cnpj", label: "CNPJ (opcional)", required: false },
   { key: "tipo_processo", label: "Tipo do processo", required: false },
   { key: "status_processo", label: "Status do processo", required: false },
@@ -112,6 +116,8 @@ function defaultMapping(
     nome_completo: find("nome", "name", "full_name", "nome_completo") ?? null,
     cpf: find("cpf", "documento", "doc", "document") ?? null,
     email: find("email", "e-mail", "mail") ?? null,
+    data_nascimento: find("data_nascimento", "nascimento", "data nasc", "dt_nasc") ?? null,
+    telefone: find("telefone", "fone", "celular", "whatsapp", "tel") ?? null,
     cnpj: find("cnpj") ?? null,
     tipo_processo: find("tipo_processo", "tipo", "processo") ?? null,
     status_processo: find("status_processo", "status", "situação") ?? null,
@@ -633,6 +639,8 @@ export default function AdminUsuariosPage() {
                       const nome = getVal(row, mapping.nome_completo ?? null)
                       const cpfRaw = getVal(row, mapping.cpf ?? null)
                       const email = getVal(row, mapping.email ?? null)
+                      const dataNascimento = getVal(row, mapping.data_nascimento ?? null)
+                      const telefone = getVal(row, mapping.telefone ?? null)
                       const cnpjRaw = getVal(row, mapping.cnpj ?? null)
                       const tipoProcesso = getVal(row, mapping.tipo_processo ?? null)
                       const statusProcesso = getVal(row, mapping.status_processo ?? null)
@@ -649,6 +657,8 @@ export default function AdminUsuariosPage() {
                         nome_completo: nome,
                         cpf: cpfRaw.replace(/\D/g, ""),
                         email,
+                        data_nascimento: dataNascimento || null,
+                        telefone: telefone || null,
                         cnpj: cnpjRaw ? cnpjRaw.replace(/\D/g, "") || null : null,
                         tipo_processo: tipoProcesso || null,
                         status_processo: statusProcesso || null,

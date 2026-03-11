@@ -126,7 +126,13 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
       const data = await res.json().catch(() => ({}))
 
       if (!res.ok) {
-        setError(data?.error || "Não foi possível enviar. Tente novamente.")
+        const message =
+          typeof data?.error === "string"
+            ? data.error
+            : res.status === 503
+              ? "Formulário temporariamente indisponível. Tente mais tarde ou entre em contato pelo WhatsApp."
+              : "Não foi possível enviar. Tente novamente."
+        setError(message)
         setLoading(false)
         return
       }
@@ -139,11 +145,8 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
 
       const whatsappUrl = getWhatsAppLeadUrl()
       if (whatsappUrl) {
-        window.open(
-          `${whatsappUrl}&text=${encodeURIComponent(msg)}`,
-          "_blank",
-          "noopener,noreferrer"
-        )
+        const fullUrl = `${whatsappUrl}&text=${encodeURIComponent(msg)}`
+        window.open(fullUrl, "_blank", "noopener,noreferrer")
       }
       setNome("")
       setTelefone("")

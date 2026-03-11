@@ -302,10 +302,12 @@ export default function Home() {
                 preload="metadata"
                 title="Conheça nosso escritório"
               >
-                <source
-                  src={process.env.NEXT_PUBLIC_VIDEO_ESCRITORIO_URL ?? ""}
-                  type="video/mp4"
-                />
+                {process.env.NEXT_PUBLIC_VIDEO_ESCRITORIO_URL ? (
+                  <source
+                    src={process.env.NEXT_PUBLIC_VIDEO_ESCRITORIO_URL}
+                    type="video/mp4"
+                  />
+                ) : null}
                 Seu navegador não suporta a reprodução de vídeos.
               </video>
             </div>

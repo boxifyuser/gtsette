@@ -4,7 +4,8 @@ import {
   createSessionPayloadForUser,
   setSessionCookie,
 } from "@/lib/session"
-import { getUserByUsername, verifyPassword } from "@/lib/auth-neon"
+import { getUserByUsername, getUserById, verifyPassword } from "@/lib/auth-neon"
+import { findUserIdByEmailOrPhone } from "@/lib/cadastro"
 import { normalizeEnv, getBoxifyBaseUrl, fetchBoxifyLeads } from "@/lib/boxify"
 
 const PIPELINE_ID = "9abf49fa-1b05-4be7-8ec5-76646e4df53d"
@@ -126,7 +127,11 @@ export async function POST(request: NextRequest) {
     const password = typeof body.password === "string" ? body.password : ""
 
     if (username && password) {
-      const user = await getUserByUsername(username)
+      let user = await getUserByUsername(username)
+      if (!user) {
+        const userId = await findUserIdByEmailOrPhone(username)
+        if (userId) user = await getUserById(userId)
+      }
       if (!user) {
         return NextResponse.json(
           { success: false, error: "Usuário ou senha incorretos." },

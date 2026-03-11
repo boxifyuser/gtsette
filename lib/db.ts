@@ -58,6 +58,9 @@ export async function ensureCadastroTable(): Promise<boolean> {
     `
     await sql`ALTER TABLE user_cadastro ADD COLUMN IF NOT EXISTS lgpd_consent boolean NOT NULL DEFAULT false`
     await sql`ALTER TABLE user_cadastro ADD COLUMN IF NOT EXISTS lgpd_consent_at timestamptz`
+    /* Primeiro acesso: match por CPF + data nascimento + e-mail + telefone */
+    await sql`ALTER TABLE user_cadastro ADD COLUMN IF NOT EXISTS data_nascimento text`
+    await sql`ALTER TABLE user_cadastro ADD COLUMN IF NOT EXISTS telefone text`
     cadastroTableChecked = true
     return true
   } catch (e) {

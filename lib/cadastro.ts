@@ -98,6 +98,97 @@ export async function getCadastroByUserId(userId: string): Promise<CadastroData 
   }
 }
 
+/** Telefone apenas dígitos; aceita com 55 ou sem. */
+export function normalizePhone(value: string): string {
+  const n = (value || "").replace(/\D/g, "")
+  if (n.length >= 12 && n.startsWith("55")) return n.slice(2)
+  if (n.length === 13 && n.startsWith("55")) return n.slice(2)
+  return n.slice(0, 11)
+}
+
+/** DD/MM/AAAA -> YYYY-MM-DD */
+export function birthDateToYyyyMmDd(ddMmYyyy: string): string {
+  const n = (ddMmYyyy || "").replace(/\D/g, "")
+  if (n.length !== 8) return ""
+  const day = n.slice(0, 2)
+  const month = n.slice(2, 4)
+  const year = n.slice(4, 8)
+  return `${year}-${month}-${day}`
+}
+
+/**
+ * Busca user_id quando o cadastro tem os quatro campos preenchidos e batem com os informados.
+ * Usado no fluxo "Primeiro acesso": só libera senha se todos derem match.
+ */
+export async function findUserIdByPrimeiroAcesso(params: {
+  cpf: string
+  email: string
+  telefone: string
+  dataNascimentoYyyyMmDd: string
+}): Promise<string | null> {
+  if (!sql) return null
+  const ok = await ensureCadastroTable()
+  if (!ok) return null
+  const cpf = normalizeDoc(params.cpf)
+  const email = (params.email || "").trim().toLowerCase()
+  const telefone = normalizePhone(params.telefone)
+  const dataNascimento = (params.dataNascimentoYyyyMmDd || "").trim()
+  if (cpf.length !== 11 || !email || !telefone || telefone.length < 10 || !dataNascimento) return null
+  const rows = await sql`
+    SELECT user_id, telefone
+    FROM user_cadastro
+    WHERE cpf = ${cpf}
+      AND LOWER(TRIM(email)) = ${email}
+      AND data_nascimento = ${dataNascimento}
+      AND telefone IS NOT NULL AND TRIM(telefone) != ''
+  `
+  for (const row of rows as Record<string, unknown>[]) {
+    const storedPhone = normalizePhone(String(row.telefone ?? ""))
+    if (storedPhone === telefone) return String(row.user_id)
+  }
+  return null
+}
+
+/** Resolve login: e-mail ou telefone -> user_id (cadastro ativo). */
+export async function findUserIdByEmailOrPhone(login: string): Promise<string | null> {
+  if (!sql) return null
+  const ok = await ensureCadastroTable()
+  if (!ok) return null
+  const trimmed = (login || "").trim()
+  if (!trimmed) return null
+  if (trimmed.includes("@")) {
+    const email = trimmed.toLowerCase()
+    const rows = await sql`
+      SELECT user_id FROM user_cadastro
+      WHERE LOWER(TRIM(email)) = ${email}
+      LIMIT 1
+    `
+    const row = rows[0] as Record<string, unknown> | undefined
+    return row?.user_id ? String(row.user_id) : null
+  }
+  const telefone = normalizePhone(trimmed)
+  if (telefone.length < 10) return null
+  const rows = await sql`
+    SELECT user_id FROM user_cadastro
+    WHERE telefone = ${telefone} OR telefone = ${"55" + telefone}
+    LIMIT 1
+  `
+  const row = rows[0] as Record<string, unknown> | undefined
+  return row?.user_id ? String(row.user_id) : null
+}
+
+export async function findUserIdByEmail(email: string): Promise<string | null> {
+  if (!sql) return null
+  await ensureCadastroTable()
+  const e = (email || "").trim().toLowerCase()
+  if (!e || !e.includes("@")) return null
+  const rows = await sql`
+    SELECT user_id FROM user_cadastro WHERE LOWER(TRIM(email)) = ${e} LIMIT 1
+  `
+  const row = rows[0] as Record<string, unknown> | undefined
+  return row?.user_id ? String(row.user_id) : null
+}
+
 export async function saveCadastro(userId: string, data: CadastroData): Promise<{ error?: string }> {
   if (!sql) return { error: "Banco não configurado." }
   const ok = await ensureCadastroTable()
@@ -135,5 +226,34 @@ export async function saveCadastro(userId: string, data: CadastroData): Promise<
   } catch (e) {
     console.error("[cadastro] saveCadastro:", e)
     return { error: "Erro ao salvar cadastro." }
+  }
+}
+
+/**
+ * Atualiza data_nascimento (YYYY-MM-DD) e telefone (só dígitos) para o fluxo Primeiro acesso.
+ * Uso: importação em massa ou admin.
+ */
+export async function setCadastroPrimeiroAcessoFields(
+  userId: string,
+  dataNascimentoYyyyMmDd: string,
+  telefoneDigits: string
+): Promise<{ error?: string }> {
+  if (!sql) return { error: "Banco não configurado." }
+  const ok = await ensureCadastroTable()
+  if (!ok) return { error: "Tabela indisponível." }
+  const data = (dataNascimentoYyyyMmDd || "").trim()
+  const tel = normalizePhone(telefoneDigits)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return { error: "Data de nascimento use YYYY-MM-DD." }
+  if (tel.length < 10) return { error: "Telefone inválido." }
+  try {
+    await sql`
+      UPDATE user_cadastro
+      SET data_nascimento = ${data}, telefone = ${tel}, updated_at = now()
+      WHERE user_id = ${userId}
+    `
+    return {}
+  } catch (e) {
+    console.error("[cadastro] setCadastroPrimeiroAcessoFields:", e)
+    return { error: "Erro ao atualizar." }
   }
 }

@@ -8,6 +8,7 @@ import {
   normalizeWhatsappPhone,
   sendWhatsappViaTwilio,
 } from "@/lib/whatsapp-password"
+import { sendPasswordEmailResend } from "@/lib/resend-password-email"
 
 function generateTemporaryPassword(length = 12): string {
   const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"
@@ -132,31 +133,20 @@ export async function POST(
   }
 
   if (sendEmail && resendKey && email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    try {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from,
-          to: [email],
-          subject: "Nova senha de acesso — área do cliente",
-          html: `
-            <p>Olá,</p>
-            <p>Foi definida uma nova senha para acesso à área do cliente.</p>
-            <p><strong>Usuário:</strong> ${escapeHtml(user.username)}<br/>
-            <strong>Senha temporária:</strong> ${escapeHtml(temporaryPassword)}</p>
-            <p>Acesse: <a href="${escapeHtml(loginHint)}">${escapeHtml(loginHint)}</a></p>
-            <p>Recomendamos alterar a senha após o primeiro acesso, se disponível.</p>
-          `,
-        }),
-      })
-      if (res.ok) emailSent = true
-    } catch {
-      /* fall through — client still gets password to copy */
-    }
+    const loginUrlAbsolute = loginHint.startsWith("http")
+      ? loginHint
+      : siteUrl
+        ? `${siteUrl}/minha-conta`
+        : loginHint
+    emailSent = await sendPasswordEmailResend({
+      resendKey,
+      from,
+      to: email,
+      subject: "Nova senha de acesso — área do cliente",
+      username: user.username,
+      temporaryPassword,
+      loginUrl: loginUrlAbsolute,
+    })
   }
 
   let message = "Senha gerada."
@@ -180,12 +170,4 @@ export async function POST(
     temporaryPassword,
     message,
   })
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
 }

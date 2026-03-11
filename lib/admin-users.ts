@@ -98,6 +98,10 @@ export interface LeadRow {
   data_atualizacao?: string | null
   data_conclusao?: string | null
   situacao_por_orgao?: string | null
+  /** YYYY-MM-DD ou DD/MM/AAAA — para Primeiro acesso */
+  data_nascimento?: string | null
+  /** Telefone com DDD, só dígitos ou com máscara */
+  telefone?: string | null
 }
 
 /** Cria usuário + cadastro para um lead (username = email; senha padrão). Opcionalmente cria um processo. Retorna id ou erro. */
@@ -124,6 +128,16 @@ export async function createLeadUser(data: LeadRow): Promise<{ id: string } | { 
       if (sql) await sql`DELETE FROM auth_users WHERE id = ${result.user.id}`
     } catch {}
     return { error: err.error }
+  }
+  const { setCadastroPrimeiroAcessoFields, birthDateToYyyyMmDd, normalizePhone } = await import("@/lib/cadastro")
+  const dn = (data.data_nascimento ?? "").trim()
+  const tel = (data.telefone ?? "").trim()
+  if (dn && tel) {
+    let dataYyyyMmDd = dn
+    if (dn.includes("/")) dataYyyyMmDd = birthDateToYyyyMmDd(dn)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dataYyyyMmDd) && normalizePhone(tel).length >= 10) {
+      await setCadastroPrimeiroAcessoFields(result.user.id, dataYyyyMmDd, tel)
+    }
   }
   const hasProcessData =
     (data.tipo_processo ?? "").trim() !== "" ||
@@ -178,6 +192,8 @@ export async function bulkCreateLeads(rows: LeadRow[]): Promise<{ created: numbe
       nome_completo: row.nome_completo ?? "",
       cpf: row.cpf ?? "",
       email: row.email,
+      data_nascimento: row.data_nascimento ?? null,
+      telefone: row.telefone ?? null,
       cnpj: row.cnpj ?? null,
       tipo_processo: row.tipo_processo ?? null,
       status_processo: row.status_processo ?? null,

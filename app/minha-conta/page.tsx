@@ -10,6 +10,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { LogOut, Pencil } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 export default function MinhaContaPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -38,6 +45,19 @@ export default function MinhaContaPage() {
   type ProcessoFilter = "todos" | "em_andamento" | "100_baixado" | "reprotocolo"
   const [processoFilter, setProcessoFilter] = useState<ProcessoFilter>("todos")
   const [orgaos, setOrgaos] = useState<{ id: string; nome: string; ordem: number; ativo: boolean }[]>([])
+  const [primeiroAcessoOpen, setPrimeiroAcessoOpen] = useState(false)
+  const [forgotOpen, setForgotOpen] = useState(false)
+  const [paCpf, setPaCpf] = useState("")
+  const [paDataNasc, setPaDataNasc] = useState("")
+  const [paEmail, setPaEmail] = useState("")
+  const [paTelefone, setPaTelefone] = useState("")
+  const [paLoading, setPaLoading] = useState(false)
+  const [paError, setPaError] = useState("")
+  const [paSuccess, setPaSuccess] = useState("")
+  const [paWhatsappUrl, setPaWhatsappUrl] = useState<string | null>(null)
+  const [forgotEmail, setForgotEmail] = useState("")
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [forgotMessage, setForgotMessage] = useState("")
 
   useEffect(() => {
     fetch("/api/auth/session")
@@ -78,6 +98,22 @@ export default function MinhaContaPage() {
     const n = value.replace(/\D/g, "").slice(0, 11)
     return n.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2")
   }
+  /** Máscara DD/MM/AAAA */
+  const formatDataNascimentoInput = (value: string) => {
+    const n = value.replace(/\D/g, "").slice(0, 8)
+    if (n.length <= 2) return n
+    if (n.length <= 4) return `${n.slice(0, 2)}/${n.slice(2)}`
+    return `${n.slice(0, 2)}/${n.slice(2, 4)}/${n.slice(4)}`
+  }
+  /** Máscara (00) 00000-0000 */
+  const formatTelefoneInput = (value: string) => {
+    const n = value.replace(/\D/g, "").slice(0, 11)
+    if (n.length <= 2) return n.length ? `(${n}` : ""
+    if (n.length <= 6) return `(${n.slice(0, 2)}) ${n.slice(2)}`
+    if (n.length <= 10) return `(${n.slice(0, 2)}) ${n.slice(2, 6)}-${n.slice(6)}`
+    return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`
+  }
+  /** E-mail em minúsculas, sem máscara visual além do type email */
   const formatCnpjInput = (value: string) => {
     const n = value.replace(/\D/g, "").slice(0, 14)
     return n
@@ -253,6 +289,58 @@ export default function MinhaContaPage() {
     }
   }
 
+  const handlePrimeiroAcesso = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPaError("")
+    setPaSuccess("")
+    setPaWhatsappUrl(null)
+    setPaLoading(true)
+    try {
+      const res = await fetch("/api/minha-conta/primeiro-acesso", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cpf: paCpf,
+          dataNascimento: paDataNasc,
+          email: paEmail.trim().toLowerCase(),
+          telefone: paTelefone,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setPaSuccess(data.message || "Verifique seu e-mail.")
+        if (data.whatsappUrl) setPaWhatsappUrl(data.whatsappUrl)
+      } else {
+        setPaError(data.error || "Não foi possível concluir.")
+        if (data.whatsappUrl) setPaWhatsappUrl(data.whatsappUrl)
+      }
+    } catch {
+      setPaError("Erro de conexão. Tente novamente.")
+    } finally {
+      setPaLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setForgotMessage("")
+    setForgotLoading(true)
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() }),
+      })
+      const data = await res.json()
+      setForgotMessage(data.message || data.error || "Tente novamente.")
+      if (data.success) setForgotEmail("")
+    } catch {
+      setForgotMessage("Erro de conexão.")
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" })
@@ -291,8 +379,8 @@ export default function MinhaContaPage() {
                 <CardTitle>{registerMode ? "Criar conta" : "Entrar na sua conta"}</CardTitle>
                 <CardDescription>
                   {registerMode
-                    ? "Preencha os dados para criar sua conta (auth Neon)."
-                    : "Digite usuário e senha para acessar sua área pessoal (auth Neon)."}
+                    ? "Defina usuário e senha para acessar a área do cliente."
+                    : "Use seu e-mail ou telefone com DDD e senha. Primeiro acesso? Use o botão abaixo."}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -362,19 +450,31 @@ export default function MinhaContaPage() {
                 ) : (
                   <form onSubmit={handleLogin} className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="username">Usuário</Label>
+                      <Label htmlFor="username">E-mail ou telefone (com DDD)</Label>
                       <Input
                         id="username"
                         type="text"
                         autoComplete="username"
-                        placeholder="seu_usuario"
+                        placeholder="seu@email.com ou (31) 99999-9999"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="password">Senha</Label>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="password">Senha</Label>
+                        <button
+                          type="button"
+                          className="text-xs font-medium text-primary underline underline-offset-2 hover:no-underline"
+                          onClick={() => {
+                            setForgotOpen(true)
+                            setForgotMessage("")
+                          }}
+                        >
+                          Esqueci minha senha
+                        </button>
+                      </div>
                       <Input
                         id="password"
                         type="password"
@@ -393,23 +493,158 @@ export default function MinhaContaPage() {
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? "Entrando..." : "Entrar"}
                     </Button>
-                    <p className="text-center text-sm text-muted-foreground">
-                      Não tem conta?{" "}
-                      <button
+                    <div className="flex flex-col gap-2">
+                      <Button
                         type="button"
-                        className="font-medium text-primary underline underline-offset-2 hover:no-underline"
+                        variant="outline"
+                        className="w-full"
                         onClick={() => {
-                          setRegisterMode(true)
-                          setError("")
+                          setPrimeiroAcessoOpen(true)
+                          setPaError("")
+                          setPaSuccess("")
+                          setPaWhatsappUrl(null)
                         }}
                       >
-                        Criar conta
-                      </button>
-                    </p>
+                        Primeiro acesso?
+                      </Button>
+                      <p className="text-center text-sm text-muted-foreground">
+                        Não tem conta?{" "}
+                        <button
+                          type="button"
+                          className="font-medium text-primary underline underline-offset-2 hover:no-underline"
+                          onClick={() => {
+                            setRegisterMode(true)
+                            setError("")
+                          }}
+                        >
+                          Criar conta
+                        </button>
+                      </p>
+                    </div>
                   </form>
                 )}
               </CardContent>
             </Card>
+
+            {/* Primeiro acesso: valida cadastro e envia senha por e-mail */}
+            <Dialog open={primeiroAcessoOpen} onOpenChange={setPrimeiroAcessoOpen}>
+              <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Primeiro acesso</DialogTitle>
+                  <DialogDescription>
+                    Informe os mesmos dados do seu cadastro. Se tudo conferir, enviaremos uma senha para o seu e-mail.
+                    A recuperação de senha também é feita por e-mail.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handlePrimeiroAcesso} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="pa-cpf">CPF</Label>
+                    <Input
+                      id="pa-cpf"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder="000.000.000-00"
+                      value={paCpf}
+                      onChange={(e) => setPaCpf(formatCpfInput(e.target.value))}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pa-nasc">Data de nascimento</Label>
+                    <Input
+                      id="pa-nasc"
+                      inputMode="numeric"
+                      placeholder="DD/MM/AAAA"
+                      value={paDataNasc}
+                      onChange={(e) => setPaDataNasc(formatDataNascimentoInput(e.target.value))}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pa-email">E-mail</Label>
+                    <Input
+                      id="pa-email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="seu@email.com"
+                      value={paEmail}
+                      onChange={(e) => setPaEmail(e.target.value.toLowerCase())}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pa-tel">Telefone com DDD</Label>
+                    <Input
+                      id="pa-tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      placeholder="(31) 99999-9999"
+                      value={paTelefone}
+                      onChange={(e) => setPaTelefone(formatTelefoneInput(e.target.value))}
+                      required
+                    />
+                  </div>
+                  {paError && (
+                    <Alert variant="destructive">
+                      <AlertDescription>{paError}</AlertDescription>
+                    </Alert>
+                  )}
+                  {paSuccess && (
+                    <Alert>
+                      <AlertDescription>{paSuccess}</AlertDescription>
+                    </Alert>
+                  )}
+                  {paWhatsappUrl && (
+                    <p className="text-sm text-muted-foreground">
+                      <a
+                        href={paWhatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-primary underline"
+                      >
+                        Falar no WhatsApp +55 31 98250-6478
+                      </a>
+                    </p>
+                  )}
+                  <Button type="submit" className="w-full" disabled={paLoading}>
+                    {paLoading ? "Verificando..." : "Validar e receber senha por e-mail"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+
+            {/* Esqueci senha: envia nova senha por e-mail (Resend) */}
+            <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Recuperar senha</DialogTitle>
+                  <DialogDescription>
+                    Informe o e-mail do seu cadastro. Se existir, enviaremos uma nova senha para esse e-mail.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">E-mail</Label>
+                    <Input
+                      id="forgot-email"
+                      type="email"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="seu@email.com"
+                      required
+                    />
+                  </div>
+                  {forgotMessage && (
+                    <Alert variant={forgotMessage.includes("Erro") ? "destructive" : "default"}>
+                      <AlertDescription>{forgotMessage}</AlertDescription>
+                    </Alert>
+                  )}
+                  <Button type="submit" className="w-full" disabled={forgotLoading}>
+                    {forgotLoading ? "Enviando..." : "Enviar nova senha por e-mail"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </section>
       </div>
