@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const pixelId = normalizeEnv(process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID)
+    const pixelId = "25487330210944319"
     const capiToken = normalizeEnv(process.env.FACEBOOK_CAPI_ACCESS_TOKEN)
     let metaLeadEventId: string | undefined
 
