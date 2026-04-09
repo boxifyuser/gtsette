@@ -1,4 +1,6 @@
+import { ConhecaGtsetteVideo } from "@/components/conheca-gtsette-video"
 import { HeroFormImovel } from "@/components/forms/hero-form-imovel"
+import { NossaEquipe } from "@/components/nossa-equipe"
 import { Button } from "@/components/ui/button"
 import {
   Carousel,
@@ -8,17 +10,10 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { DepoimentoCard } from "@/components/depoimento-card"
-import { Star, Phone, Play, MapPin } from "lucide-react"
+import { Phone, Play, MapPin } from "lucide-react"
 import fs from "fs"
 import Link from "next/link"
 import path from "path"
-
-const VIDEO_HERO_POSTER = "/images/escritorio-thumb.jpg"
-/** URL do vídeo hero; se vazia, exibe só o poster (evita src="" no <source>) */
-const videoHeroUrl =
-  typeof process.env.NEXT_PUBLIC_VIDEO_HERO_URL === "string"
-    ? process.env.NEXT_PUBLIC_VIDEO_HERO_URL.trim() || null
-    : null
 
 const DEPOIMENTOS_PADRAO = [
   "/images/depoimentos/depoimento-1.png",
@@ -150,51 +145,52 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Video Section */}
-      <section className="bg-gradient-to-br from-primary/5 via-background to-primary/5 px-6 py-20">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            {/* Video */}
+      {/* Vídeo institucional — YouTube Short embutido (componente ConhecaGtsetteVideo) */}
+      <section
+        id="conheca-gtsette"
+        aria-labelledby="heading-conheca-gtsette"
+        className="relative overflow-hidden bg-gradient-to-br from-primary/[0.07] via-background to-primary/[0.05] px-6 py-20 md:py-28"
+      >
+        <div
+          className="pointer-events-none absolute -right-32 top-0 h-96 w-96 rounded-full bg-primary/[0.08] blur-3xl"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-primary/[0.06] blur-3xl"
+          aria-hidden
+        />
+
+        <div className="container relative z-10 mx-auto max-w-6xl">
+          <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-16">
             <div className="order-2 lg:order-1">
-              <div className="overflow-hidden rounded-2xl shadow-2xl">
-                {videoHeroUrl ? (
-                  <video
-                    controls
-                    className="w-full"
-                    poster={VIDEO_HERO_POSTER}
-                    preload="metadata"
-                  >
-                    <source src={videoHeroUrl} type="video/mp4" />
-                    Seu navegador não suporta a reprodução de vídeos.
-                  </video>
-                ) : (
-                  <img
-                    src={VIDEO_HERO_POSTER}
-                    alt="GTSETTE Soluções"
-                    className="w-full object-cover"
-                    width={1200}
-                    height={675}
-                  />
-                )}
-              </div>
+              <ConhecaGtsetteVideo />
             </div>
 
-            {/* Content */}
-            <div className="order-1 lg:order-2">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
-                <Play className="h-4 w-4" />
-                Assista ao vídeo
+            <div className="order-1 flex flex-col justify-center lg:order-2">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary">Institucional</p>
+              <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-primary/15 bg-white/90 px-4 py-2 text-sm font-semibold text-primary shadow-sm backdrop-blur-sm">
+                <Play className="h-4 w-4 shrink-0" aria-hidden />
+                Vídeo com áudio
               </div>
-              <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">Conheça a GTSETTE Soluções</h2>
-              <p className="mb-6 text-lg leading-relaxed text-gray-700">
+              <h2
+                id="heading-conheca-gtsette"
+                className="mb-5 text-balance text-3xl font-bold tracking-tight text-gray-900 md:text-4xl lg:text-[2.5rem] lg:leading-tight"
+              >
+                Conheça a GTSETTE Soluções
+              </h2>
+              <p className="mb-5 text-pretty text-lg leading-relaxed text-gray-700 md:text-xl md:leading-relaxed">
                 Entenda como funcionam nossos serviços e descubra por que somos a escolha de mais de 80 mil pessoas que
-                recuperaram sua tranquilidade financeira.
+                recuperaram a tranquilidade financeira.
               </p>
-              <p className="mb-8 text-gray-700">
-                Nossa equipe especializada está pronta para encontrar a melhor solução para o seu caso, com
-                transparência e compromisso com resultados reais.
+              <p className="mb-8 text-pretty text-gray-700">
+                Nossa equipe está pronta para encontrar a melhor solução para o seu caso, com transparência e compromisso
+                com resultados reais.
               </p>
-              <Button asChild size="lg" className="bg-primary text-white hover:bg-primary-hover">
+              <Button
+                asChild
+                size="lg"
+                className="h-12 w-full rounded-xl bg-primary text-base font-semibold text-white shadow-md hover:bg-primary-hover sm:w-auto"
+              >
                 <Link href="/sobre">Saiba mais sobre nós</Link>
               </Button>
             </div>
@@ -358,6 +354,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <NossaEquipe />
 
       {/* Social Proof Section - Carrossel de depoimentos */}
       <section className="bg-secondary px-6 py-20">

@@ -1,9 +1,31 @@
 "use client"
 
-/** Meta Pixel (injetado pelo script no layout) */
-declare const fbq: ((action: string, event: string) => void) | undefined
+/**
+ * Meta Pixel — evento padrão Lead e parâmetros opcionais (content_name, content_category, value, currency).
+ * @see https://eventsmanager.facebook.com/business/help/402791146561655?id=1205376682832142
+ */
+type MetaPixelLeadParams = {
+  content_name: string
+  content_category: string
+  value?: number
+  currency?: string
+  /** Mesmo valor que `event_id` no servidor (CAPI) — deduplicação no Meta. */
+  eventID?: string
+}
+
+declare const fbq:
+  | ((
+      action: "track",
+      event: "Lead",
+      params?: MetaPixelLeadParams
+    ) => void)
+  | undefined
 
 import { useState } from "react"
+import {
+  META_LEAD_CONTENT_NAME,
+  type MetaLeadFormSource,
+} from "@/lib/meta-lead-analytics"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,7 +39,7 @@ function getWhatsAppLeadUrl(): string {
 }
 
 /** Slug da página onde o formulário está — define a mensagem do WhatsApp e o source da API */
-export type HeroFormPageSlug = "home" | "financiamento-imovel" | "financiamento-veiculo"
+export type HeroFormPageSlug = MetaLeadFormSource
 
 const WHATSAPP_INTRO_BY_PAGE: Record<HeroFormPageSlug, string> = {
   home: "Olá! Gostaria de receber uma proposta para limpar meu nome e organizar minha vida financeira.",
@@ -25,6 +47,24 @@ const WHATSAPP_INTRO_BY_PAGE: Record<HeroFormPageSlug, string> = {
     "Olá! Quero aumentar minhas chances de aprovação no financiamento imobiliário.",
   "financiamento-veiculo":
     "Olá! Quero aumentar minhas chances de aprovação no financiamento de veículo.",
+}
+
+function trackMetaStandardLead(
+  pageSlug: HeroFormPageSlug,
+  estimatedDebtBRL: number | undefined,
+  metaLeadEventId?: string
+) {
+  if (typeof fbq !== "function") return
+  const params: MetaPixelLeadParams = {
+    content_name: META_LEAD_CONTENT_NAME[pageSlug],
+    content_category: "lead_form",
+  }
+  if (estimatedDebtBRL != null && estimatedDebtBRL > 0) {
+    params.value = estimatedDebtBRL
+    params.currency = "BRL"
+  }
+  if (metaLeadEventId) params.eventID = metaLeadEventId
+  fbq("track", "Lead", params)
 }
 
 /** Máscara: (00) 00000-0000 — celular 11 dígitos ou (00) 0000-0000 — fixo 10 dígitos */
@@ -144,9 +184,10 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
       }
 
       if (data.success) {
-        if (typeof fbq === "function") {
-          fbq("track", "Lead")
-        }
+        const debtForPixel = parseCurrencyToNumber(valorDivida)
+        const payload = data as { metaLeadEventId?: string }
+        const capiEventId = typeof payload.metaLeadEventId === "string" ? payload.metaLeadEventId : undefined
+        trackMetaStandardLead(pageSlug, debtForPixel, capiEventId)
       }
 
       const whatsappUrl = getWhatsAppLeadUrl()

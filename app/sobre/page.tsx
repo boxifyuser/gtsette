@@ -4,6 +4,15 @@ import { Award, Eye, Heart, Target, TrendingUp } from "lucide-react"
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
+const VIDEO_HERO_POSTER = "/images/logo-gtsette.png"
+
+function getVideoHeroUrl(): string | null {
+  const raw = process.env.NEXT_PUBLIC_VIDEO_HERO_URL
+  if (typeof raw !== "string") return null
+  const t = raw.trim()
+  return t.length > 0 ? t : null
+}
+
 export const metadata: Metadata = {
   title: "Sobre Nós - GTSETTE Soluções Financeiras",
   description:
@@ -17,6 +26,8 @@ export const metadata: Metadata = {
 }
 
 export default function SobrePage() {
+  const videoHeroUrl = getVideoHeroUrl()
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Hero Section with Welcome Message */}
@@ -93,10 +104,20 @@ export default function SobrePage() {
             </p>
           </div>
           <div className="overflow-hidden rounded-2xl shadow-2xl">
-            <video controls className="w-full" poster="/images/logo-gtsette.png">
-              <source src={process.env.NEXT_PUBLIC_VIDEO_HERO_URL ?? ""} type="video/mp4" />
-              Seu navegador não suporta a reprodução de vídeos.
-            </video>
+            {videoHeroUrl ? (
+              <video controls className="w-full" poster={VIDEO_HERO_POSTER} preload="metadata">
+                <source src={videoHeroUrl} type="video/mp4" />
+                Seu navegador não suporta a reprodução de vídeos.
+              </video>
+            ) : (
+              <img
+                src={VIDEO_HERO_POSTER}
+                alt="GTSETTE Soluções Financeiras"
+                className="w-full object-cover"
+                width={1200}
+                height={675}
+              />
+            )}
           </div>
         </div>
       </section>
