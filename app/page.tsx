@@ -11,7 +11,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { DepoimentoCard } from "@/components/depoimento-card"
-import { Phone, MapPin } from "lucide-react"
+import { ArrowDown, MapPin } from "lucide-react"
 import fs from "fs"
 import Link from "next/link"
 import path from "path"
@@ -115,14 +115,9 @@ export default function Home() {
                   size="lg"
                   className="h-14 bg-gradient-to-r from-primary via-primary-hover to-primary px-8 text-base font-semibold text-white shadow-lg transition-all hover:shadow-xl"
                 >
-                  <a
-                    href={process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ? `https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER.replace(/\D/g, "")}` : "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2"
-                  >
-                    <Phone className="h-5 w-5" />
-                    Chamar no whatsapp agora!
+                  <a href="#hero-form" className="flex items-center gap-2">
+                    <ArrowDown className="h-5 w-5" />
+                    Receber avaliação gratuita
                   </a>
                 </Button>
                 <Button
@@ -137,7 +132,7 @@ export default function Home() {
             </div>
 
             {/* Right: formulário Receba uma proposta */}
-            <div className="flex items-center justify-center lg:justify-end">
+            <div id="hero-form" className="flex items-center justify-center lg:justify-end">
               <div className="w-full max-w-md">
                 <HeroFormImovel pageSlug="home" />
               </div>

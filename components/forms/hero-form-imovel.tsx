@@ -13,13 +13,16 @@ type MetaPixelLeadParams = {
   eventID?: string
 }
 
-declare const fbq:
-  | ((
+declare global {
+  interface Window {
+    fbq?: (
       action: "track",
       event: "Lead",
-      params?: MetaPixelLeadParams
-    ) => void)
-  | undefined
+      params?: MetaPixelLeadParams,
+      options?: { eventID?: string }
+    ) => void
+  }
+}
 
 import { useState } from "react"
 import {
@@ -54,7 +57,7 @@ function trackMetaStandardLead(
   estimatedDebtBRL: number | undefined,
   metaLeadEventId?: string
 ) {
-  if (typeof fbq !== "function") return
+  if (typeof window === "undefined" || typeof window.fbq !== "function") return
   const params: MetaPixelLeadParams = {
     content_name: META_LEAD_CONTENT_NAME[pageSlug],
     content_category: "lead_form",
@@ -64,7 +67,7 @@ function trackMetaStandardLead(
     params.currency = "BRL"
   }
   if (metaLeadEventId) params.eventID = metaLeadEventId
-  fbq("track", "Lead", params)
+  window.fbq("track", "Lead", params)
 }
 
 /** Máscara: (00) 00000-0000 — celular 11 dígitos ou (00) 0000-0000 — fixo 10 dígitos */
