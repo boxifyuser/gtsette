@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { HeroFormImovel } from "@/components/forms/hero-form-imovel"
+import { FileVideoPlayer } from "@/components/file-video-player"
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
@@ -119,7 +120,10 @@ export default function RatingBancarioPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <section className="relative overflow-hidden bg-gray-900 px-4 py-8 sm:px-6 sm:py-12 lg:py-24">
+      <section
+        className="relative overflow-hidden bg-gray-900 px-4 py-8 sm:px-6 sm:py-12 lg:py-24"
+        aria-labelledby="heading-rating-hero"
+      >
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
           style={{ backgroundImage: "url('/images/banner-hero.png')" }}
@@ -130,13 +134,16 @@ export default function RatingBancarioPage() {
           aria-hidden
         />
         <div className="container relative z-10 mx-auto max-w-7xl">
-          <div className="grid items-start gap-6 lg:grid-cols-2 lg:items-center lg:gap-12">
-            <div className="order-2 lg:order-1">
+          <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-12">
+            <div className="order-2 lg:order-1 lg:pt-4">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm sm:gap-2 sm:px-4 sm:py-2 sm:text-sm">
                 <BarChart3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Rating Bancário</span>
               </div>
-              <h1 className="mt-4 text-xl font-extrabold leading-snug text-white sm:mt-6 sm:text-3xl sm:leading-tight md:text-4xl lg:text-5xl">
+              <h1
+                id="heading-rating-hero"
+                className="mt-4 text-xl font-extrabold leading-snug text-white sm:mt-6 sm:text-3xl sm:leading-tight md:text-4xl lg:text-5xl"
+              >
                 Aumente sua pontuação para AA no Serasa e Concentre
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/90 sm:mt-4 sm:text-base lg:text-lg">
@@ -170,13 +177,29 @@ export default function RatingBancarioPage() {
                 </Button>
               </div>
             </div>
-            <div className="order-1 lg:order-2 lg:flex lg:justify-end">
-              <div className="w-full max-w-md lg:max-w-sm">
+
+            {/* Formulário */}
+            <div className="order-1 flex w-full justify-center lg:order-2 lg:justify-end">
+              <div id="hero-form" className="w-full max-w-md lg:max-w-sm">
                 <HeroFormImovel pageSlug="rating-bancario" />
               </div>
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Vídeo full-bleed — 100% da largura da página */}
+      <section
+        id="video-rating"
+        aria-label="Vídeo sobre rating bancário"
+        className="w-full bg-black"
+      >
+        <FileVideoPlayer
+          src={process.env.NEXT_PUBLIC_VIDEO_RATING_URL ?? "/videos/rating-bancario.mp4"}
+          ariaLabel="Reproduzir vídeo sobre rating bancário"
+          objectFit="cover"
+          className="w-full overflow-hidden rounded-none bg-black shadow-none ring-0"
+        />
       </section>
 
       <section className="border-b border-gray-200 bg-white px-6 py-16">
