@@ -110,6 +110,11 @@ export function Footer() {
               <li>Limpa Nome</li>
               <li>Retirada de Dívidas dos Órgãos</li>
               <li>Restauração de Score</li>
+              <li>
+                <Link href="/rating-bancario" className="transition-colors hover:text-primary">
+                  Rating Bancário
+                </Link>
+              </li>
               <li>Regularização Financeira</li>
               <li>Restauração de Crédito</li>
             </ul>

@@ -17,7 +17,7 @@ const YOUTUBE_EMBED_URL =
   }).toString()
 
 /**
- * Vídeo institucional da seção "Conheça a GTSETTE Soluções" (YouTube Short embutido).
+ * Vídeo institucional (YouTube Short embutido), usado na home na seção Visite-nos.
  * Foco visível no wrapper; descrição para leitores de tela.
  */
 export function ConhecaGtsetteVideo() {

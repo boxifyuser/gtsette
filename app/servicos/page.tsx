@@ -69,6 +69,7 @@ export default function ServicosPage() {
       icon: BarChart3,
       title: "Rating Bancário",
       description: "Aumente sua pontuação para AA no Serasa/Concentre e abra novas oportunidades de crédito.",
+      href: "/rating-bancario",
       features: [
         "Elevação do score para classificação AA",
         "Melhoria no Serasa e Concentre",
@@ -107,13 +108,22 @@ export default function ServicosPage() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {services.map((service, index) => {
               const Icon = service.icon
+              const href = "href" in service ? service.href : undefined
               return (
                 <Card key={index} className="transition-all hover:shadow-lg">
                   <CardHeader>
                     <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <Icon className="h-6 w-6" />
                     </div>
-                    <CardTitle className="text-xl">{service.title}</CardTitle>
+                    <CardTitle className="text-xl">
+                      {href ? (
+                        <Link href={href} className="hover:text-primary hover:underline">
+                          {service.title}
+                        </Link>
+                      ) : (
+                        service.title
+                      )}
+                    </CardTitle>
                     <CardDescription>{service.description}</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -125,6 +135,11 @@ export default function ServicosPage() {
                         </li>
                       ))}
                     </ul>
+                    {href ? (
+                      <Button asChild variant="link" className="mt-4 h-auto px-0 text-primary">
+                        <Link href={href}>Saiba mais →</Link>
+                      </Button>
+                    ) : null}
                   </CardContent>
                 </Card>
               )

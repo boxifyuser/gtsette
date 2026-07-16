@@ -1,3 +1,4 @@
+import { ConhecaGtsetteFileVideo } from "@/components/conheca-gtsette-file-video"
 import { ConhecaGtsetteVideo } from "@/components/conheca-gtsette-video"
 import { HeroFormImovel } from "@/components/forms/hero-form-imovel"
 import { NossaEquipe } from "@/components/nossa-equipe"
@@ -10,7 +11,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { DepoimentoCard } from "@/components/depoimento-card"
-import { Phone, Play, MapPin } from "lucide-react"
+import { Phone, MapPin } from "lucide-react"
 import fs from "fs"
 import Link from "next/link"
 import path from "path"
@@ -145,7 +146,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Vídeo institucional — YouTube Short embutido (componente ConhecaGtsetteVideo) */}
+      {/* Institucional — vídeo local + texto (YouTube fica em Visite-nos) */}
       <section
         id="conheca-gtsette"
         aria-labelledby="heading-conheca-gtsette"
@@ -163,15 +164,11 @@ export default function Home() {
         <div className="container relative z-10 mx-auto max-w-6xl">
           <div className="grid items-center gap-14 lg:grid-cols-2 lg:gap-16">
             <div className="order-2 lg:order-1">
-              <ConhecaGtsetteVideo />
+              <ConhecaGtsetteFileVideo />
             </div>
 
-            <div className="order-1 flex flex-col justify-center lg:order-2">
+            <div className="order-1 flex flex-col justify-center text-center lg:order-2 lg:text-left">
               <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-primary">Institucional</p>
-              <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-primary/15 bg-white/90 px-4 py-2 text-sm font-semibold text-primary shadow-sm backdrop-blur-sm">
-                <Play className="h-4 w-4 shrink-0" aria-hidden />
-                Vídeo com áudio
-              </div>
               <h2
                 id="heading-conheca-gtsette"
                 className="mb-5 text-balance text-3xl font-bold tracking-tight text-gray-900 md:text-4xl lg:text-[2.5rem] lg:leading-tight"
@@ -186,13 +183,15 @@ export default function Home() {
                 Nossa equipe está pronta para encontrar a melhor solução para o seu caso, com transparência e compromisso
                 com resultados reais.
               </p>
-              <Button
-                asChild
-                size="lg"
-                className="h-12 w-full rounded-xl bg-primary text-base font-semibold text-white shadow-md hover:bg-primary-hover sm:w-auto"
-              >
-                <Link href="/sobre">Saiba mais sobre nós</Link>
-              </Button>
+              <div className="flex justify-center lg:justify-start">
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-12 rounded-xl bg-primary text-base font-semibold text-white shadow-md hover:bg-primary-hover"
+                >
+                  <Link href="/sobre">Saiba mais sobre nós</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -285,27 +284,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Office Location Section - Hero */}
-      <section className="bg-background px-6 py-20">
+      {/* Office Location Section — YouTube institucional + endereços */}
+      <section className="bg-background px-6 py-20" aria-labelledby="heading-visite-nos">
         <div className="container mx-auto max-w-7xl">
-          <div className="grid items-stretch gap-10 lg:grid-cols-[1fr_1fr] lg:gap-12">
-            {/* Lateral esquerda - Vídeo com imagem como thumbnail (poster) */}
-            <div className="overflow-hidden rounded-2xl bg-gray-100 shadow-xl ring-1 ring-black/5">
-              <video
-                controls
-                className="h-full w-full object-cover"
-                poster="/images/banner-hero.png"
-                preload="metadata"
-                title="Conheça nosso escritório"
-              >
-                {process.env.NEXT_PUBLIC_VIDEO_ESCRITORIO_URL ? (
-                  <source
-                    src={process.env.NEXT_PUBLIC_VIDEO_ESCRITORIO_URL}
-                    type="video/mp4"
-                  />
-                ) : null}
-                Seu navegador não suporta a reprodução de vídeos.
-              </video>
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-12">
+            <div className="flex justify-center lg:justify-start">
+              <ConhecaGtsetteVideo />
             </div>
 
             {/* Lateral direita - Título + dois endereços */}
@@ -314,7 +298,9 @@ export default function Home() {
                 <MapPin className="h-5 w-5" />
                 Nossos Escritórios
               </div>
-              <h2 className="mb-2 text-3xl font-bold text-gray-900 md:text-4xl">Visite-nos</h2>
+              <h2 id="heading-visite-nos" className="mb-2 text-3xl font-bold text-gray-900 md:text-4xl">
+                Visite-nos
+              </h2>
               <p className="mb-8 text-gray-600">
                 Estamos em Belo Horizonte e Cuiabá, prontos para atendê-lo pessoalmente.
               </p>

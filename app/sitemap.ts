@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/minha-conta",
     "/financiamento-imovel",
     "/financiamento-veiculo",
+    "/rating-bancario",
   ]
 
   return routes.map((route) => ({
