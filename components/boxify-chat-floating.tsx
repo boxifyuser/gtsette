@@ -1,5 +1,6 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { useState } from "react"
 
 /**
@@ -40,7 +41,11 @@ function buildChatIframeUrl(): string {
 }
 
 export function BoxifyChatFloating() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
+
+  // Rating Bancário usa o embed oficial agent.js (outro agentId).
+  if (pathname === "/rating-bancario") return null
 
   return (
     <>

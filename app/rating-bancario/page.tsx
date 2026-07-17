@@ -13,6 +13,7 @@ import {
 import Link from "next/link"
 import { HeroFormImovel } from "@/components/forms/hero-form-imovel"
 import { FileVideoPlayer } from "@/components/file-video-player"
+import { BoxifyRatingAgentEmbed } from "@/components/boxify-rating-agent-embed"
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
@@ -120,6 +121,7 @@ export default function RatingBancarioPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <BoxifyRatingAgentEmbed />
       <section
         className="relative overflow-hidden bg-gray-900 px-4 py-8 sm:px-6 sm:py-12 lg:py-24"
         aria-labelledby="heading-rating-hero"

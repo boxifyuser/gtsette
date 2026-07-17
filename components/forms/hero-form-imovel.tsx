@@ -126,6 +126,7 @@ export interface HeroFormImovelProps {
 }
 
 export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
+  const showDebtValue = pageSlug !== "rating-bancario"
   const [nome, setNome] = useState("")
   const [telefone, setTelefone] = useState("")
   const [email, setEmail] = useState("")
@@ -158,15 +159,19 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
 
     setLoading(true)
 
+    const debtValue = showDebtValue ? parseCurrencyToNumber(valorDivida) : undefined
     const intro = WHATSAPP_INTRO_BY_PAGE[pageSlug]
-    const msg = [
+    const msgLines = [
       intro,
       "",
       `Nome: ${nome || "—"}`,
       `Telefone: ${telefone || "—"}`,
       `E-mail: ${email || "—"}`,
-      `Valor aproximado da dívida: ${valorDivida || "—"}`,
-    ].join("\n")
+    ]
+    if (showDebtValue) {
+      msgLines.push(`Valor aproximado da dívida: ${valorDivida || "—"}`)
+    }
+    const msg = msgLines.join("\n")
 
     try {
       const res = await fetch("/api/leads", {
@@ -176,7 +181,7 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
           name: nome.trim(),
           email: email.trim() || undefined,
           phone: telefone.replace(/\D/g, "") || undefined,
-          value: parseCurrencyToNumber(valorDivida) != null ? String(parseCurrencyToNumber(valorDivida)) : undefined,
+          value: debtValue != null ? String(debtValue) : undefined,
           source: pageSlug,
         }),
       })
@@ -196,10 +201,9 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
       }
 
       if (data.success) {
-        const debtForPixel = parseCurrencyToNumber(valorDivida)
         const payload = data as { metaLeadEventId?: string }
         const capiEventId = typeof payload.metaLeadEventId === "string" ? payload.metaLeadEventId : undefined
-        trackMetaConversion(pageSlug, debtForPixel, capiEventId)
+        trackMetaConversion(pageSlug, debtValue, capiEventId)
       }
 
       const whatsappUrl = getWhatsAppLeadUrl()
@@ -329,20 +333,22 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
             </p>
           )}
         </div>
-        <div>
-          <Label htmlFor="hero-valor" className="text-sm text-white/90 sm:text-base">
-            Valor da dívida (aproximado)
-          </Label>
-          <Input
-            id="hero-valor"
-            type="text"
-            placeholder="Ex: R$ 50.000"
-            value={valorDivida}
-            onChange={(e) => setValorDivida(formatCurrency(e.target.value))}
-            disabled={loading}
-            className="mt-1 h-10 border-white/30 bg-white/10 text-sm text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70 sm:h-11 sm:text-base"
-          />
-        </div>
+        {showDebtValue && (
+          <div>
+            <Label htmlFor="hero-valor" className="text-sm text-white/90 sm:text-base">
+              Valor da dívida (aproximado)
+            </Label>
+            <Input
+              id="hero-valor"
+              type="text"
+              placeholder="Ex: R$ 50.000"
+              value={valorDivida}
+              onChange={(e) => setValorDivida(formatCurrency(e.target.value))}
+              disabled={loading}
+              className="mt-1 h-10 border-white/30 bg-white/10 text-sm text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70 sm:h-11 sm:text-base"
+            />
+          </div>
+        )}
       </div>
       <Button
         type="submit"
