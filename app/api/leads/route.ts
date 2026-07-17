@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
         userAgent: request.headers.get("user-agent") || undefined,
       })
       if (!capi.ok) {
-        console.warn("[api/leads] Meta CAPI Lead:", capi.error)
+        console.warn("[api/leads] Meta CAPI conversion:", capi.error)
         metaLeadEventId = undefined
       }
     }

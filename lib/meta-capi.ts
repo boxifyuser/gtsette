@@ -1,5 +1,10 @@
 import { createHash } from "crypto"
-import { META_LEAD_CONTENT_NAME, resolveMetaLeadFormSource, type MetaLeadFormSource } from "@/lib/meta-lead-analytics"
+import {
+  META_LEAD_CONTENT_NAME,
+  metaConversionEventName,
+  resolveMetaLeadFormSource,
+  type MetaLeadFormSource,
+} from "@/lib/meta-lead-analytics"
 
 /** SHA-256 hex, e-mail normalizado (minúsculas, trim), conforme Meta. */
 export function hashMetaEmail(email: string): string {
@@ -26,7 +31,8 @@ export type SendMetaCapiLeadParams = {
 }
 
 /**
- * Envia um evento Lead via Conversions API (deduplica com o Pixel usando o mesmo `event_id` / `eventID`).
+ * Envia evento via Conversions API (deduplica com o Pixel usando o mesmo `event_id` / `eventID`).
+ * Lead padrão nas demais páginas; LeadRating (custom) em rating-bancario.
  * @see https://developers.facebook.com/docs/marketing-api/conversions-api
  */
 export async function sendMetaCapiLead(
@@ -37,6 +43,7 @@ export async function sendMetaCapiLead(
   const version = (process.env.META_GRAPH_API_VERSION ?? "v21.0").replace(/\r\n|\r|\n/g, "").trim() || "v21.0"
   const sourceKey = resolveMetaLeadFormSource(params.source)
   const content_name = META_LEAD_CONTENT_NAME[sourceKey]
+  const event_name = metaConversionEventName(sourceKey)
 
   const user_data: Record<string, string | string[]> = {}
   if (params.clientIp) user_data.client_ip_address = params.clientIp
@@ -61,7 +68,7 @@ export async function sendMetaCapiLead(
   }
 
   const eventPayload = {
-    event_name: "Lead" as const,
+    event_name,
     event_time: Math.floor(Date.now() / 1000),
     event_id: params.eventId,
     action_source: "website" as const,

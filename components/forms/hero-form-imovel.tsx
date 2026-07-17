@@ -1,7 +1,7 @@
 "use client"
 
 /**
- * Meta Pixel — evento padrão Lead e parâmetros opcionais (content_name, content_category, value, currency).
+ * Meta Pixel — Lead padrão (home/financiamentos) ou LeadRating custom (rating-bancario).
  * @see https://eventsmanager.facebook.com/business/help/402791146561655?id=1205376682832142
  */
 type MetaPixelLeadParams = {
@@ -16,8 +16,8 @@ type MetaPixelLeadParams = {
 declare global {
   interface Window {
     fbq?: (
-      action: "track",
-      event: "Lead",
+      action: "track" | "trackCustom",
+      event: "Lead" | "LeadRating",
       params?: MetaPixelLeadParams,
       options?: { eventID?: string }
     ) => void
@@ -27,6 +27,7 @@ declare global {
 import { useState } from "react"
 import {
   META_LEAD_CONTENT_NAME,
+  metaConversionEventName,
   type MetaLeadFormSource,
 } from "@/lib/meta-lead-analytics"
 import { Button } from "@/components/ui/button"
@@ -50,9 +51,11 @@ const WHATSAPP_INTRO_BY_PAGE: Record<HeroFormPageSlug, string> = {
     "Olá! Quero aumentar minhas chances de aprovação no financiamento imobiliário.",
   "financiamento-veiculo":
     "Olá! Quero aumentar minhas chances de aprovação no financiamento de veículo.",
+  "rating-bancario":
+    "Olá! Gostaria de receber uma avaliação de rating bancário do meu CPF ou CNPJ.",
 }
 
-function trackMetaStandardLead(
+function trackMetaConversion(
   pageSlug: HeroFormPageSlug,
   estimatedDebtBRL: number | undefined,
   metaLeadEventId?: string
@@ -67,6 +70,12 @@ function trackMetaStandardLead(
     params.currency = "BRL"
   }
   if (metaLeadEventId) params.eventID = metaLeadEventId
+
+  const eventName = metaConversionEventName(pageSlug)
+  if (eventName === "LeadRating") {
+    window.fbq("trackCustom", "LeadRating", params)
+    return
+  }
   window.fbq("track", "Lead", params)
 }
 
@@ -190,7 +199,7 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
         const debtForPixel = parseCurrencyToNumber(valorDivida)
         const payload = data as { metaLeadEventId?: string }
         const capiEventId = typeof payload.metaLeadEventId === "string" ? payload.metaLeadEventId : undefined
-        trackMetaStandardLead(pageSlug, debtForPixel, capiEventId)
+        trackMetaConversion(pageSlug, debtForPixel, capiEventId)
       }
 
       const whatsappUrl = getWhatsAppLeadUrl()
