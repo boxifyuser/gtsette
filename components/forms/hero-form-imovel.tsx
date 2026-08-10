@@ -129,13 +129,18 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
   const showDebtValue = pageSlug !== "rating-bancario"
   const [nome, setNome] = useState("")
   const [telefone, setTelefone] = useState("")
+  const [telefoneConfirmacao, setTelefoneConfirmacao] = useState("")
   const [email, setEmail] = useState("")
   const [valorDivida, setValorDivida] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successWhatsAppUrl, setSuccessWhatsAppUrl] = useState<string | null>(null)
   const [whatsappLinkToShow, setWhatsappLinkToShow] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<{ telefone?: string; email?: string }>({})
+  const [fieldErrors, setFieldErrors] = useState<{
+    telefone?: string
+    telefoneConfirmacao?: string
+    email?: string
+  }>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -144,11 +149,24 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
     setWhatsappLinkToShow(null)
     setFieldErrors({})
 
-    const errors: { telefone?: string; email?: string } = {}
+    const errors: { telefone?: string; telefoneConfirmacao?: string; email?: string } = {}
     const phoneDigits = telefone.replace(/\D/g, "")
-    if (phoneDigits.length > 0 && !isValidPhone(telefone)) {
+    const phoneConfirmDigits = telefoneConfirmacao.replace(/\D/g, "")
+
+    if (!phoneDigits) {
+      errors.telefone = "Informe um telefone válido (10 ou 11 dígitos)."
+    } else if (!isValidPhone(telefone)) {
       errors.telefone = "Informe um telefone válido (10 ou 11 dígitos)."
     }
+
+    if (!phoneConfirmDigits) {
+      errors.telefoneConfirmacao = "Confirme o telefone digitado."
+    } else if (!isValidPhone(telefoneConfirmacao)) {
+      errors.telefoneConfirmacao = "Informe um telefone válido (10 ou 11 dígitos)."
+    } else if (phoneDigits && phoneConfirmDigits !== phoneDigits) {
+      errors.telefoneConfirmacao = "Os telefones não coincidem."
+    }
+
     if (email.trim().length > 0 && !isValidEmail(email)) {
       errors.email = "Informe um e-mail válido."
     }
@@ -222,6 +240,7 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
       }
       setNome("")
       setTelefone("")
+      setTelefoneConfirmacao("")
       setEmail("")
       setValorDivida("")
     } catch {
@@ -298,6 +317,7 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
               setTelefone(formatPhone(e.target.value))
               if (fieldErrors.telefone) setFieldErrors((prev) => ({ ...prev, telefone: undefined }))
             }}
+            required
             disabled={loading}
             className={`mt-1 h-10 border-white/30 bg-white/10 text-sm text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70 sm:h-11 sm:text-base ${fieldErrors.telefone ? "border-red-400 focus-visible:ring-red-400" : ""}`}
             aria-invalid={!!fieldErrors.telefone}
@@ -306,6 +326,34 @@ export function HeroFormImovel({ pageSlug = "home" }: HeroFormImovelProps) {
           {fieldErrors.telefone && (
             <p id="hero-telefone-error" className="mt-1 text-xs text-red-300">
               {fieldErrors.telefone}
+            </p>
+          )}
+        </div>
+        <div>
+          <Label htmlFor="hero-telefone-confirmacao" className="text-sm text-white/90 sm:text-base">
+            Confirme o telefone
+          </Label>
+          <Input
+            id="hero-telefone-confirmacao"
+            type="tel"
+            placeholder="(00) 00000-0000"
+            value={telefoneConfirmacao}
+            onChange={(e) => {
+              setTelefoneConfirmacao(formatPhone(e.target.value))
+              if (fieldErrors.telefoneConfirmacao) {
+                setFieldErrors((prev) => ({ ...prev, telefoneConfirmacao: undefined }))
+              }
+            }}
+            required
+            disabled={loading}
+            autoComplete="off"
+            className={`mt-1 h-10 border-white/30 bg-white/10 text-sm text-white placeholder:text-white/50 focus-visible:border-primary focus-visible:ring-primary/50 disabled:opacity-70 sm:h-11 sm:text-base ${fieldErrors.telefoneConfirmacao ? "border-red-400 focus-visible:ring-red-400" : ""}`}
+            aria-invalid={!!fieldErrors.telefoneConfirmacao}
+            aria-describedby={fieldErrors.telefoneConfirmacao ? "hero-telefone-confirmacao-error" : undefined}
+          />
+          {fieldErrors.telefoneConfirmacao && (
+            <p id="hero-telefone-confirmacao-error" className="mt-1 text-xs text-red-300">
+              {fieldErrors.telefoneConfirmacao}
             </p>
           )}
         </div>
